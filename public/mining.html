@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mining • Yadah Gemstone PLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#E6F0FF',
+                100: '#CCDDFF',
+                200: '#99BBFF',
+                300: '#6699FF',
+                400: '#4D7FFF',
+                500: '#4674B7',
+                600: '#3A5F9A',
+                700: '#2E4A7D',
+                800: '#223560',
+                900: '#162043'
+              },
+              secondary: {
+                50: '#F5F5F5',
+                100: '#E5E5E5',
+                200: '#CCCCCC',
+                300: '#B3B3B3',
+                400: '#999999',
+                500: '#808080',
+                600: '#666666',
+                700: '#4D4D4D',
+                800: '#424243',
+                900: '#333333'
+              }
+            },
+            boxShadow: {
+              soft: '0 10px 30px rgba(0,0,0,0.08)',
+              lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+            },
+            fontFamily: {
+              sans: [
+                'Raleway',
+                'ui-sans-serif',
+                'system-ui',
+                '-apple-system',
+                'Segoe UI',
+                'Roboto',
+                'Ubuntu',
+                'Cantarell',
+                'Noto Sans',
+                'Helvetica Neue',
+                'Arial',
+                'sans-serif'
+              ],
+              heading: [
+                'Josefin Sans',
+                'ui-sans-serif',
+                'system-ui',
+                '-apple-system',
+                'Segoe UI',
+                'Roboto',
+                'Ubuntu',
+                'Cantarell',
+                'Noto Sans',
+                'Helvetica Neue',
+                'Arial',
+                'sans-serif'
+              ]
+            },
+          }
+        }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      .shadow-soft {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      .hero-pattern {
+        background: linear-gradient(rgba(70, 116, 183, 0.85), rgba(34, 53, 96, 0.9)), url('https://images.unsplash.com/photo-1594326141445-081f5e7dfd92?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80');
+        background-size: cover;
+        background-position: center;
+      }
+      .mineral-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .mineral-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      }
+      .animated-underline {
+        position: relative;
+        display: inline-block;
+      }
+      .animated-underline::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: currentColor;
+        transition: width 0.3s ease;
+      }
+      .animated-underline:hover::after {
+        width: 100%;
+      }
+
+    .perspective { perspective: 1200px; -webkit-perspective: 1200px; }
+    .preserve-3d { transform-style: preserve-3d; -webkit-transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .card {
+      transform: rotateY(0deg);
+      transition: transform 1000ms ease-in-out;
+    }
+    .group:hover .card, .flipped .card {
+      transform: rotateY(180deg);
+    }
+    .face-back {
+      transform: rotateY(180deg);
+    }
+    </style>
+  </head>
+  <body class="antialiased text-secondary-800">
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-100">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <a href="index.html" class="flex items-center gap-2">
+            <img src="/Yadah logo_F1.png" alt="Yadah Logo" class="h-8 w-auto">
+            <span class="font-semibold text-xl font-heading">Yadah Gemstone PLC</span>
+          </a>
+          <nav class="hidden md:flex items-center gap-8 text-sm relative">
+            <a href="index.html#home" class="hover:text-primary-500">Home</a>
+            <a href="index.html#about" class="hover:text-primary-500">About</a>
+            <div class="relative group">
+  <button class="inline-flex items-center gap-1 hover:text-primary-500" id="sectorsMenuBtn" aria-haspopup="true" aria-expanded="false">
+    Our Sectors
+    <svg class="h-4 w-4 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </button>
+  <div id="sectorsMenu" class="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity absolute left-0 mt-2 z-50 space-y-2">
+    <a href="mining.html" class="block w-56 rounded-lg border border-slate-200 bg-white shadow-soft py-2 px-4 hover:bg-slate-50 transition-all hover:translate-x-1">Mining</a>
+    <a href="agriculture.html" class="block w-56 rounded-lg border border-slate-200 bg-white shadow-soft py-2 px-4 hover:bg-slate-50 transition-all hover:translate-x-1">Agriculture</a>
+    <a href="construction.html" class="block w-56 rounded-lg border border-slate-200 bg-white shadow-soft py-2 px-4 hover:bg-slate-50 transition-all hover:translate-x-1">Construction</a>
+    <a href="water-works.html" class="block w-56 rounded-lg border border-slate-200 bg-white shadow-soft py-2 px-4 hover:bg-slate-50 transition-all hover:translate-x-1">Water Works</a>
+  </div>
+</div>
+            <a href="index.html#ourapproach" class="hover:text-primary-500">Our Approach</a>
+            <a href="index.html#members" class="hover:text-primary-500">Leadership</a>
+          </nav>
+          <div class="flex items-center gap-3">
+            <a href="contact.html" class="hidden sm:inline-flex items-center gap-2 rounded-full bg-primary-500 px-4 py-2 text-white text-sm font-medium shadow-soft hover:bg-primary-600">Contact Us</a>
+            <button class="md:hidden inline-flex items-center justify-center rounded-md p-2 hover:bg-slate-100" id="mobileMenuBtn" aria-label="Open menu">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6"><path fill-rule="evenodd" d="M3.75 5.25a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm0 6a.75.75 0 0 1 .75-.75h15a.75.75 0 0 1 0 1.5h-15a.75.75 0 0 1-.75-.75Zm.75 5.25a.75.75 0 0 0 0 1.5h15a.75.75 0 0 0 0-1.5h-15Z" clip-rule="evenodd"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="mobileMenu" class="md:hidden hidden border-t border-slate-100">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 grid gap-3 text-center">
+            <a href="index.html#home" class="hover:text-primary-500" onclick="document.getElementById('mobileMenu').classList.add('hidden')">Home</a>
+            <a href="index.html#about" class="py-2" onclick="document.getElementById('mobileMenu').classList.add('hidden')">About</a>
+            <div class="grid gap-2">
+              <span class="text-slate-500 pt-2">Our Sectors</span>
+              <a href="mining.html" class="py-2 hover:text-primary-500 bg-primary-50 text-primary-600 font-medium" onclick="document.getElementById('mobileMenu').classList.add('hidden')">Mining</a>
+              <a href="agriculture.html" class="py-2 hover:text-primary-500" onclick="document.getElementById('mobileMenu').classList.add('hidden')">Agriculture</a>
+              <a href="construction.html" class="py-2 hover:text-primary-500" onclick="document.getElementById('mobileMenu').classList.add('hidden')">Construction</a>
+              <a href="water-works.html" class="py-2 hover:text-primary-500" onclick="document.getElementById('mobileMenu').classList.add('hidden')">Water Works</a>
+            </div>
+            <a href="index.html#ourapproach" class="py-2" onclick="document.getElementById('mobileMenu').classList.add('hidden')">Our Approach</a>
+            <a href="index.html#members" class="py-2" onclick="document.getElementById('mobileMenu').classList.add('hidden')">Leadership</a>
+            <a href="contact.html" class="py-2" onclick="document.getElementById('mobileMenu').classList.add('hidden')">Contact</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="relative hero-pattern text-white py-20 overflow-hidden"
+    style="background-image: url('mine.png');">
+    <div class="absolute inset-0 bg-black opacity-50"></div> <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="max-w-3xl">
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold font-heading mb-6">
+            Pioneering the Future of Mining in Ethiopia
+          </h1>
+          <p class="text-xl md:text-2xl mb-8 leading-relaxed">
+            Ethical and efficient extraction of Ethiopia's mineral wealth,
+            combining local expertise with global standards for sustainable growth.
+          </p>
+          <a href="contact.html" class="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-primary-600 font-semibold hover:bg-primary-50 transition-colors shadow-lg">
+            Contact Us
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+    
+
+    <section class="py-14 bg-white">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <div>
+        <h2 class="text-3xl font-bold font-heading mb-6 text-secondary-800" id="miningVisionTitle">
+          Our Vision for Mining
+        </h2>
+        <div id="miningVisionContent">
+          <p class="text-lg text-slate-600 mb-6 leading-relaxed">
+            Yadah Gemstone PLC is a <strong>primary producer and exporter of high-quality minerals</strong>
+            from our owned and operated mining sites across the <strong>Southern, Southwestern, and Eastern Oromia regions, as well as Dire Dawa</strong>.
+          </p>
+          <p class="text-lg text-slate-600 mb-8 leading-relaxed">
+            Our operations are rooted in <strong>ethical and efficient extraction</strong>, ensuring a sustainable approach that benefits both our partners and the local communities. We are committed to processing all minerals to meet <strong>stringent export quality standards</strong>.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-4">
+          <div class="flex items-center gap-2 text-sm text-slate-700 font-semibold">
+            <div class="bg-primary-100 p-2 rounded-full">
+              <i class="fas fa-shield-alt text-primary-600"></i>
+            </div>
+            <span>Ethical Practices</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-slate-700 font-semibold">
+            <div class="bg-primary-100 p-2 rounded-full">
+              <i class="fas fa-leaf text-primary-600"></i>
+            </div>
+            <span>Sustainable Methods</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-slate-700 font-semibold">
+            <div class="bg-primary-100 p-2 rounded-full">
+              <i class="fas fa-handshake text-primary-600"></i>
+            </div>
+            <span>Community Partnership</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <img src="img1.jpg" alt="Mining operation" class="rounded-xl shadow-soft w-full max-h-[500px] object-cover" id="miningVisionImage">
+      </div>
+    </div>
+  </div>
+</section>
+
+
+    <section class="py-16 bg-slate-50" id="minerals">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-4xl font-bold font-heading mb-4 text-secondary-800">
+        Our Minerals
+      </h2>
+      <p class="text-lg text-slate-600">
+        We specialize in the ethical extraction and export of these valuable
+        minerals, contributing to Ethiopia's economic growth while
+        maintaining the highest environmental and quality standards.
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8" id="mineralsContainer">
+      <!-- Dynamic minerals will be loaded here -->
+    </div>
+  </div>
+</section>
+
+<section class="py-16 bg-white">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="bg-primary-800 text-white rounded-2xl p-8 md:p-12 text-center shadow-soft">
+          <h2 class="text-3xl md:text-4xl font-bold font-heading mb-4">Ready to Build with Us?</h2>
+          <p class="text-lg mb-8 max-w-2xl mx-auto">Partner with Yadah Gemstone PLC to bring your next construction project to life with our expertise and commitment to quality.</p>
+          <a href="contact.html" class="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3 text-primary-600 font-semibold hover:bg-neutral-100 transition-colors">
+            Get in Touch
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+
+    <footer class="py-16 border-t border-slate-700 bg-slate-900">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-10 md:grid-cols-12 text-center md:text-left">
+          <div class="md:col-span-5 flex flex-col items-center md:items-start">
+            <a href="index.html" class="flex items-center gap-3">
+              <img src="/Yadah logo_F1.png" alt="Yadah Logo" class="h-8 w-auto">
+              <span class="text-xl font-semibold font-heading text-white">Yadah Gemstone PLC</span>
+            </a>
+            <p class="mt-4 text-slate-400">Excellence in mining, agriculture, construction, and water works.<br/>Your trusted partner in sustainable development.</p>
+            <div class="mt-6 flex items-center gap-3 justify-center md:justify-start">
+              <a href="#" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-white hover:bg-slate-800" aria-label="X">
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a href="#" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-white hover:bg-slate-800" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="#" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-white hover:bg-slate-800" aria-label="LinkedIn">
+                <i class="fab fa-linkedin-in"></i>
+              </a>
+              <a href="#" class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-white hover:bg-slate-800" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+            </div>
+          </div>
+          <div class="md:col-span-7 grid sm:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+              <h4 class="text-xs font-semibold tracking-wider text-slate-500">MENU</h4>
+              <ul class="mt-4 space-y-3 text-sm text-slate-400">
+                <li><a href="index.html" class="hover:text-primary-400 animated-underline">Home</a></li>
+                <li><a href="index.html#about" class="hover:text-primary-400 animated-underline">About Us</a></li>
+                <li><a href="index.html#services" class="hover:text-primary-400 animated-underline">Our Sectors</a></li>
+                <li><a href="index.html#ourapproach" class="hover:text-primary-400 animated-underline">Our Approach</a></li>
+                <li><a href="index.html#members" class="hover:text-primary-400 animated-underline">Leadership</a></li>
+                <li><a href="contact.html" class="hover:text-primary-400 animated-underline">Contact Us</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-xs font-semibold tracking-wider text-slate-500">OUR SECTORS</h4>
+              <ul class="mt-4 space-y-3 text-sm text-slate-400">
+                <li><a href="mining.html" class="hover:text-primary-400 animated-underline">Mining</a></li>
+                <li><a href="agriculture.html" class="hover:text-primary-400 animated-underline">Agriculture</a></li>
+                <li><a href="construction.html" class="hover:text-primary-400 animated-underline">Construction</a></li>
+                <li><a href="water-works.html" class="hover:text-primary-400 animated-underline">Water Works</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="text-xs font-semibold tracking-wider text-slate-500">COMPANY</h4>
+              <ul class="mt-4 space-y-3 text-sm text-slate-400">
+                <li><a href="index.html#members" class="hover:text-primary-400 animated-underline">Leadership</a></li>
+                <li><a href="index.html#core-competencies" class="hover:text-primary-400 animated-underline">Core Competencies</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="mt-10 text-center text-sm text-slate-500">© <span id="year"></span> Yadah Gemstone PLC. All rights reserved.</div>
+      </div>
+    </footer>
+
+    <script>
+      // Mobile nav toggle
+      const mobileBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      if (mobileBtn) {
+        mobileBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+      }
+
+      // Desktop sectors dropdown toggle for keyboard/mouse users
+      (function(){
+        const btn = document.getElementById('sectorsMenuBtn');
+        const menu = document.getElementById('sectorsMenu');
+        if(!btn || !menu) return;
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          const expanded = btn.getAttribute('aria-expanded') === 'true';
+          btn.setAttribute('aria-expanded', String(!expanded));
+          if(expanded){
+            menu.classList.add('invisible','opacity-0');
+          } else {
+            menu.classList.remove('invisible','opacity-0');
+          }
+        });
+        document.addEventListener('click', (ev)=>{
+          if(!menu.contains(ev.target) && !btn.contains(ev.target)){
+            btn.setAttribute('aria-expanded','false');
+            menu.classList.add('invisible','opacity-0');
+          }
+        });
+      })();
+      document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+
+    <!-- Dynamic Content Script -->
+    <script>
+      // API base URL
+      const API_BASE = '/api';
+
+      // Load dynamic content
+      document.addEventListener('DOMContentLoaded', function() {
+          loadMiningVision();
+          loadMinerals();
+      });
+
+      // Load mining vision
+      async function loadMiningVision() {
+          try {
+              const response = await fetch(`${API_BASE}/mining-vision`);
+              const vision = await response.json();
+              
+              if (vision && vision.title) {
+                  document.getElementById('miningVisionTitle').textContent = vision.title;
+                  document.getElementById('miningVisionContent').innerHTML = vision.content;
+                  if (vision.image_url) {
+                      document.getElementById('miningVisionImage').src = vision.image_url;
+                  }
+              }
+          } catch (error) {
+              console.error('Error loading mining vision:', error);
+          }
+      }
+
+      // Load minerals
+      async function loadMinerals() {
+          try {
+              const response = await fetch(`${API_BASE}/minerals`);
+              const minerals = await response.json();
+              
+              const mineralsContainer = document.getElementById('mineralsContainer');
+              if (mineralsContainer && minerals.length > 0) {
+                  mineralsContainer.innerHTML = minerals.map(mineral => `
+                      <div class="group perspective cursor-pointer select-none" role="button" tabindex="0">
+                          <div class="card relative w-full h-72 preserve-3d bg-white rounded-xl shadow-lg transition-transform duration-700">
+                              <div class="absolute inset-0 backface-hidden p-8 text-center flex flex-col items-center justify-center">
+                                  <div class="bg-primary-50 w-20 h-20 rounded-full flex items-center justify-center mb-4">
+                                      <i class="fas fa-gem text-4xl text-primary-600"></i>
+                                  </div>
+                                  <h3 class="font-bold text-lg mb-2 text-secondary-800">${mineral.name}</h3>
+                                  <p class="text-slate-600 text-sm">${mineral.description}</p>
+                              </div>
+                              <div class="absolute inset-0 backface-hidden face-back flex items-center justify-center rounded-xl overflow-hidden">
+                                  <img src="${mineral.image_url}" alt="${mineral.name}" class="w-full h-full object-cover">
+                              </div>
+                          </div>
+                      </div>
+                  `).join('');
+                  
+                  // Add flip functionality
+                  document.querySelectorAll('.group').forEach((el) => {
+                      el.addEventListener('click', () => {
+                          el.classList.toggle('flipped');
+                      });
+
+                      el.addEventListener('keydown', (e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              el.classList.toggle('flipped');
+                          }
+                      });
+                  });
+              } else {
+                  // Fallback content if no minerals found
+                  mineralsContainer.innerHTML = `
+                      <div class="group perspective cursor-pointer select-none" role="button" tabindex="0">
+                          <div class="card relative w-full h-72 preserve-3d bg-white rounded-xl shadow-lg transition-transform duration-700">
+                              <div class="absolute inset-0 backface-hidden p-8 text-center flex flex-col items-center justify-center">
+                                  <div class="bg-primary-50 w-20 h-20 rounded-full flex items-center justify-center mb-4">
+                                      <i class="fas fa-gem text-4xl text-primary-600"></i>
+                                  </div>
+                                  <h3 class="font-bold text-lg mb-2 text-secondary-800">Gemstone</h3>
+                                  <p class="text-slate-600 text-sm">Precious and semi-precious stones ethically sourced for high-end markets.</p>
+                              </div>
+                              <div class="absolute inset-0 backface-hidden face-back flex items-center justify-center rounded-xl overflow-hidden">
+                                  <img src="/gemstone.jpg" alt="Gemstone" class="w-full h-full object-cover">
+                              </div>
+                          </div>
+                      </div>
+                      <div class="group perspective cursor-pointer select-none" role="button" tabindex="0">
+                          <div class="card relative w-full h-72 preserve-3d bg-white rounded-xl shadow-lg transition-transform duration-700">
+                              <div class="absolute inset-0 backface-hidden p-8 text-center flex flex-col items-center justify-center">
+                                  <div class="bg-primary-50 w-20 h-20 rounded-full flex items-center justify-center mb-4">
+                                      <i class="fas fa-coins text-4xl text-primary-600"></i>
+                                  </div>
+                                  <h3 class="font-bold text-lg mb-2 text-secondary-800">Gold</h3>
+                                  <p class="text-slate-600 text-sm">High-purity gold extracted using eco-friendly methods and technology.</p>
+                              </div>
+                              <div class="absolute inset-0 backface-hidden face-back flex items-center justify-center rounded-xl overflow-hidden">
+                                  <img src="/gold.png" alt="Gold" class="w-full h-full object-cover">
+                              </div>
+                          </div>
+                      </div>
+                      <div class="group perspective cursor-pointer select-none" role="button" tabindex="0">
+                          <div class="card relative w-full h-72 preserve-3d bg-white rounded-xl shadow-lg transition-transform duration-700">
+                              <div class="absolute inset-0 backface-hidden p-8 text-center flex flex-col items-center justify-center">
+                                  <div class="bg-primary-50 w-20 h-20 rounded-full flex items-center justify-center mb-4">
+                                      <i class="fas fa-industry text-4xl text-primary-600"></i>
+                                  </div>
+                                  <h3 class="font-bold text-lg mb-2 text-secondary-800">Copper (Cu)</h3>
+                                  <p class="text-slate-600 text-sm">Industrial-grade copper for global manufacturing markets.</p>
+                              </div>
+                              <div class="absolute inset-0 backface-hidden face-back flex items-center justify-center rounded-xl overflow-hidden">
+                                  <img src="/copper.png" alt="Copper" class="w-full h-full object-cover">
+                              </div>
+                          </div>
+                      </div>
+                      <div class="group perspective cursor-pointer select-none" role="button" tabindex="0">
+                          <div class="card relative w-full h-72 preserve-3d bg-white rounded-xl shadow-lg transition-transform duration-700">
+                              <div class="absolute inset-0 backface-hidden p-8 text-center flex flex-col items-center justify-center">
+                                  <div class="bg-primary-50 w-20 h-20 rounded-full flex items-center justify-center mb-4">
+                                      <i class="fas fa-fire text-4xl text-primary-600"></i>
+                                  </div>
+                                  <h3 class="font-bold text-lg mb-2 text-secondary-800">Coal</h3>
+                                  <p class="text-slate-600 text-sm">Thermal and metallurgical coal for efficient energy production.</p>
+                              </div>
+                              <div class="absolute inset-0 backface-hidden face-back flex items-center justify-center rounded-xl overflow-hidden">
+                                  <img src="/coal.png" alt="Coal" class="w-full h-full object-cover">
+                              </div>
+                          </div>
+                      </div>
+                  `;
+              }
+          } catch (error) {
+              console.error('Error loading minerals:', error);
+          }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Yadah Gemstone PLC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#E6F0FF',
+                            100: '#CCDDFF',
+                            200: '#99BBFF',
+                            300: '#6699FF',
+                            400: '#4D7FFF',
+                            500: '#4674B7',
+                            600: '#3A5F9A',
+                            700: '#2E4A7D',
+                            800: '#223560',
+                            900: '#162043'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Login Form -->
+        <div id="loginForm" class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold text-center mb-6">Admin Login</h2>
+            <form id="loginFormElement">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+                        Username
+                    </label>
+                    <input type="text" id="username" name="username" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                        Password
+                    </label>
+                    <input type="password" id="password" name="password" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <button type="submit"
+                    class="w-full bg-primary-500 text-white py-2 px-4 rounded-md hover:bg-primary-600 transition-colors">
+                    Login
+                </button>
+            </form>
+            <div id="loginError" class="mt-4 text-red-500 text-center hidden"></div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="hidden">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+                <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">
+                    Logout
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="mb-6">
+                <div class="flex space-x-1">
+                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-primary-500 text-white" data-tab="sectors">Our Sectors</button>
+                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-gray-200" data-tab="commitments">Our Commitment</button>
+                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-gray-200" data-tab="leadership">Leadership Team</button>
+                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-gray-200" data-tab="mining">Mining Vision & Minerals</button>
+                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-gray-200" data-tab="agriculture">Agricultural Products</button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="tabContent">
+                <!-- Sectors Tab -->
+                <div id="sectorsTab" class="tab-panel">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Our Sectors</h2>
+                        <button onclick="showAddForm('sector')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                            Add Sector
+                        </button>
+                    </div>
+                    <div id="sectorsList" class="space-y-4"></div>
+                </div>
+
+                <!-- Commitments Tab -->
+                <div id="commitmentsTab" class="tab-panel hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Our Commitment</h2>
+                        <button onclick="showAddForm('commitment')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                            Add Commitment
+                        </button>
+                    </div>
+                    <div id="commitmentsList" class="space-y-4"></div>
+                </div>
+
+                <!-- Leadership Tab -->
+                <div id="leadershipTab" class="tab-panel hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Leadership Team</h2>
+                        <button onclick="showAddForm('leadership')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                            Add Member
+                        </button>
+                    </div>
+                    <div id="leadershipList" class="space-y-4"></div>
+                </div>
+
+                <!-- Mining Tab -->
+                <div id="miningTab" class="tab-panel hidden">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h2 class="text-2xl font-bold mb-4">Mining Vision</h2>
+                            <div id="miningVisionForm">
+                                <form id="miningVisionFormElement" class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Title</label>
+                                        <input type="text" id="visionTitle" name="title" class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Content</label>
+                                        <textarea id="visionContent" name="content" rows="6" class="w-full border rounded-md px-3 py-2"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-1">Image URL</label>
+                                        <input type="text" id="visionImage" name="image_url" class="w-full border rounded-md px-3 py-2">
+                                    </div>
+                                    <button type="submit" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                                        Save Vision
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-2xl font-bold">Minerals</h2>
+                                <button onclick="showAddForm('mineral')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                                    Add Mineral
+                                </button>
+                            </div>
+                            <div id="mineralsList" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agriculture Tab -->
+                <div id="agricultureTab" class="tab-panel hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Agricultural Products</h2>
+                        <button onclick="showAddForm('agriculturalProduct')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                            Add Product
+                        </button>
+                    </div>
+                    <div id="agriculturalProductsList" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Forms -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 id="modalTitle" class="text-xl font-bold mb-4"></h3>
+            <form id="modalForm" class="space-y-4"></form>
+            <div class="flex justify-end space-x-2 mt-6">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-md">Cancel</button>
+                <button type="submit" form="modalForm" class="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let token = localStorage.getItem('adminToken');
+
+        // Check if user is already logged in
+        if (token) {
+            showDashboard();
+        }
+
+        // Login functionality
+        document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const credentials = {
+                username: formData.get('username'),
+                password: formData.get('password')
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(credentials)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    token = data.token;
+                    localStorage.setItem('adminToken', token);
+                    showDashboard();
+                } else {
+                    document.getElementById('loginError').textContent = data.error;
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'Login failed';
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('adminToken');
+            token = null;
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        });
+
+        // Tab functionality
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active tab
+                document.querySelectorAll('.tab-btn').forEach(b => {
+                    b.classList.remove('bg-primary-500', 'text-white');
+                    b.classList.add('bg-gray-200');
+                });
+                btn.classList.remove('bg-gray-200');
+                btn.classList.add('bg-primary-500', 'text-white');
+
+                // Show active tab content
+                const tabName = btn.dataset.tab;
+                document.querySelectorAll('.tab-panel').forEach(panel => {
+                    panel.classList.add('hidden');
+                });
+                document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+
+                // Load tab data
+                loadTabData(tabName);
+            });
+        });
+
+        function showDashboard() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            loadTabData('sectors');
+        }
+
+        async function loadTabData(tabName) {
+            switch (tabName) {
+                case 'sectors':
+                    await loadSectors();
+                    break;
+                case 'commitments':
+                    await loadCommitments();
+                    break;
+                case 'leadership':
+                    await loadLeadership();
+                    break;
+                case 'mining':
+                    await loadMiningVision();
+                    await loadMinerals();
+                    break;
+                case 'agriculture':
+                    await loadAgriculturalProducts();
+                    break;
+            }
+        }
+
+        // Load data functions
+        async function loadSectors() {
+            const response = await fetch(`${API_BASE}/sectors`);
+            const sectors = await response.json();
+            const container = document.getElementById('sectorsList');
+            
+            container.innerHTML = sectors.map(sector => `
+                <div class="bg-white p-4 rounded-lg shadow border">
+                    <h3 class="font-bold text-lg">${sector.title}</h3>
+                    <p class="text-gray-600">${sector.description}</p>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="editItem('sector', ${sector.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
+                        <button onclick="deleteItem('sector', ${sector.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadCommitments() {
+            const response = await fetch(`${API_BASE}/commitments`);
+            const commitments = await response.json();
+            const container = document.getElementById('commitmentsList');
+            
+            container.innerHTML = commitments.map(commitment => `
+                <div class="bg-white p-4 rounded-lg shadow border">
+                    <h3 class="font-bold text-lg">${commitment.title}</h3>
+                    <p class="text-gray-600">${commitment.description}</p>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="editItem('commitment', ${commitment.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
+                        <button onclick="deleteItem('commitment', ${commitment.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadLeadership() {
+            const response = await fetch(`${API_BASE}/leadership`);
+            const leadership = await response.json();
+            const container = document.getElementById('leadershipList');
+            
+            container.innerHTML = leadership.map(member => `
+                <div class="bg-white p-4 rounded-lg shadow border">
+                    <h3 class="font-bold text-lg">${member.name}</h3>
+                    <p class="text-gray-600">${member.role}</p>
+                    <p class="text-sm text-gray-500">${member.description}</p>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="editItem('leadership', ${member.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
+                        <button onclick="deleteItem('leadership', ${member.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadMiningVision() {
+            const response = await fetch(`${API_BASE}/mining-vision`);
+            const vision = await response.json();
+            
+            if (vision) {
+                document.getElementById('visionTitle').value = vision.title || '';
+                document.getElementById('visionContent').value = vision.content || '';
+                document.getElementById('visionImage').value = vision.image_url || '';
+            }
+        }
+
+        async function loadMinerals() {
+            const response = await fetch(`${API_BASE}/minerals`);
+            const minerals = await response.json();
+            const container = document.getElementById('mineralsList');
+            
+            container.innerHTML = minerals.map(mineral => `
+                <div class="bg-white p-4 rounded-lg shadow border">
+                    <h3 class="font-bold text-lg">${mineral.name}</h3>
+                    <p class="text-gray-600">${mineral.description}</p>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="editItem('mineral', ${mineral.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
+                        <button onclick="deleteItem('mineral', ${mineral.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadAgriculturalProducts() {
+            const response = await fetch(`${API_BASE}/agricultural-products`);
+            const products = await response.json();
+            const container = document.getElementById('agriculturalProductsList');
+            
+            container.innerHTML = products.map(product => `
+                <div class="bg-white p-4 rounded-lg shadow border">
+                    <h3 class="font-bold text-lg">${product.name}</h3>
+                    <p class="text-gray-600">${product.description}</p>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="editItem('agriculturalProduct', ${product.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
+                        <button onclick="deleteItem('agriculturalProduct', ${product.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Mining vision form
+        document.getElementById('miningVisionFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                title: formData.get('title'),
+                content: formData.get('content'),
+                image_url: formData.get('image_url')
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/mining-vision`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Mining vision saved successfully!');
+                } else {
+                    alert('Error saving mining vision');
+                }
+            } catch (error) {
+                alert('Error saving mining vision');
+            }
+        });
+
+        // Modal functions
+        function showAddForm(type) {
+            const forms = {
+                sector: {
+                    title: 'Add Sector',
+                    fields: [
+                        { name: 'title', label: 'Title', type: 'text', required: true },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true },
+                        { name: 'image_url', label: 'Image URL', type: 'text', required: true },
+                        { name: 'link_url', label: 'Link URL', type: 'text', required: true },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                    ]
+                },
+                commitment: {
+                    title: 'Add Commitment',
+                    fields: [
+                        { name: 'title', label: 'Title', type: 'text', required: true },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true },
+                        { name: 'image_url', label: 'Image URL', type: 'text', required: true },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                    ]
+                },
+                leadership: {
+                    title: 'Add Leadership Member',
+                    fields: [
+                        { name: 'name', label: 'Name', type: 'text', required: true },
+                        { name: 'role', label: 'Role', type: 'text', required: true },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true },
+                        { name: 'more_content', label: 'More Content', type: 'textarea', required: false },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                    ]
+                },
+                mineral: {
+                    title: 'Add Mineral',
+                    fields: [
+                        { name: 'name', label: 'Name', type: 'text', required: true },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true },
+                        { name: 'image_url', label: 'Image URL', type: 'text', required: true },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                    ]
+                },
+                agriculturalProduct: {
+                    title: 'Add Agricultural Product',
+                    fields: [
+                        { name: 'name', label: 'Name', type: 'text', required: true },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true },
+                        { name: 'image_url', label: 'Image URL', type: 'text', required: true },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                    ]
+                }
+            };
+
+            const formConfig = forms[type];
+            document.getElementById('modalTitle').textContent = formConfig.title;
+            
+            const formHTML = formConfig.fields.map(field => `
+                <div>
+                    <label class="block text-sm font-medium mb-1">${field.label}</label>
+                    ${field.type === 'textarea' ? 
+                        `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full border rounded-md px-3 py-2" rows="3"></textarea>` :
+                        `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full border rounded-md px-3 py-2">`
+                    }
+                </div>
+            `).join('');
+
+            document.getElementById('modalForm').innerHTML = formHTML;
+            document.getElementById('modalForm').onsubmit = (e) => handleFormSubmit(e, type);
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        async function handleFormSubmit(e, type) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(`${API_BASE}/${getEndpoint(type)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    loadTabData(getTabName(type));
+                    alert('Item added successfully!');
+                } else {
+                    alert('Error adding item');
+                }
+            } catch (error) {
+                alert('Error adding item');
+            }
+        }
+
+        function getEndpoint(type) {
+            const endpoints = {
+                sector: 'sectors',
+                commitment: 'commitments',
+                leadership: 'leadership',
+                mineral: 'minerals',
+                agriculturalProduct: 'agricultural-products'
+            };
+            return endpoints[type];
+        }
+
+        function getTabName(type) {
+            const tabs = {
+                sector: 'sectors',
+                commitment: 'commitments',
+                leadership: 'leadership',
+                mineral: 'mining',
+                agriculturalProduct: 'agriculture'
+            };
+            return tabs[type];
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        async function deleteItem(type, id) {
+            if (!confirm('Are you sure you want to delete this item?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    loadTabData(getTabName(type));
+                    alert('Item deleted successfully!');
+                } else {
+                    alert('Error deleting item');
+                }
+            } catch (error) {
+                alert('Error deleting item');
+            }
+        }
+// Edit functionality
+async function editItem(type, id) {
+    try {
+        // Fetch existing data
+        const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`);
+        const item = await response.json();
+
+        // Show edit form in modal
+        showEditForm(type, id, item);
+    } catch (error) {
+        console.error('Error fetching item for edit:', error);
+        alert('Error loading item for editing');
+    }
+}
+
+function showEditForm(type, id, item) {
+    const forms = {
+        sector: {
+            title: 'Edit Sector',
+            fields: [
+                { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
+                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                { name: 'link_url', label: 'Link URL', type: 'text', required: true, value: item.link_url },
+                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+            ]
+        },
+        commitment: {
+            title: 'Edit Commitment',
+            fields: [
+                { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
+                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+            ]
+        },
+        leadership: {
+            title: 'Edit Leadership Member',
+            fields: [
+                { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                { name: 'role', label: 'Role', type: 'text', required: true, value: item.role },
+                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                { name: 'more_content', label: 'More Content', type: 'textarea', required: false, value: item.more_content },
+                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+            ]
+        },
+        mineral: {
+            title: 'Edit Mineral',
+            fields: [
+                { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+            ]
+        },
+        agriculturalProduct: {
+            title: 'Edit Agricultural Product',
+            fields: [
+                { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+            ]
+        }
+    };
+
+    const formConfig = forms[type];
+    document.getElementById('modalTitle').textContent = formConfig.title;
+    
+    const formHTML = formConfig.fields.map(field => `
+        <div>
+            <label class="block text-sm font-medium mb-1">${field.label}</label>
+            ${field.type === 'textarea' ? 
+                `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full border rounded-md px-3 py-2" rows="3">${field.value || ''}</textarea>` :
+                `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full border rounded-md px-3 py-2" value="${field.value || ''}">`
+            }
+        </div>
+    `).join('');
+
+    document.getElementById('modalForm').innerHTML = formHTML;
+    document.getElementById('modalForm').onsubmit = (e) => handleEditSubmit(e, type, id);
+    document.getElementById('modal').classList.remove('hidden');
+}
+
+async function handleEditSubmit(e, type, id) {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            closeModal();
+            loadTabData(getTabName(type));
+            alert('Item updated successfully!');
+        } else {
+            alert('Error updating item');
+        }
+    } catch (error) {
+        console.error('Error updating item:', error);
+        alert('Error updating item');
+    }
+}
+        // Note: Edit functionality would be similar but requires fetching existing data
+        // This is a simplified version - you would need to implement the full edit flow
+    </script>
+</body>
+</html>
