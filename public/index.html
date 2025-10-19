@@ -401,7 +401,74 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="commitmentsContainer">
-      <!-- Dynamic commitments will be loaded here -->
+
+      <div class="rounded-2xl overflow-hidden shadow-soft relative h-96 bg-gray-100 p-6 flex flex-col justify-center items-center text-center lg:col-span-2">
+  <!-- <h4 class="text-2xl md:text-3xl font-bold text-gray-800">Committed to Sustainability</h4> -->
+  <p class="text-5xl md:text-4xl font-bold text-primary-600 my-4">Our Commitment</p>
+  <p class="text-slate-600 text-sm max-w-sm">
+    We are dedicated to ethical and sustainable practices across our key sectors, including mining, construction, water-works and agriculture, ensuring the well-being of both the environment and our communities. Our approach is built on a foundation of extensive experience and a steadfast commitment to positive impact.
+  </p>
+  <a href="#about" class="mt-4 px-6 py-3 bg-white text-gray-800 rounded-full shadow-md font-semibold hover:bg-gray-200 transition-colors">
+    Learn More
+  </a>
+</div>
+
+      <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96 lg:col-span-2">
+        <img
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          src="/img1.jpg"
+          alt="Mining Operations"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+          <div class="text-white">
+            <h4 class="text-xl font-semibold">Mineral Mining</h4>
+            <p class="text-sm">Producing and exporting high-quality minerals like **Gemstone, Gold, and Lithium** from sites across Oromia and Dire Dawa.</p>
+          </div>
+        </div>
+      </a>
+
+      <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96">
+        <img
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          src="/img3.jpg"
+          alt="Agriculture"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+          <div class="text-white">
+            <h4 class="text-xl font-semibold">Agriculture</h4>
+            <p class="text-sm">Managing over 200 hectares of farmland to grow **Sesame, Mung Beans, Chickpeas**, and other export-quality crops.</p>
+          </div>
+        </div>
+      </a>
+
+      <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96 lg:col-span-2">
+        <img
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          src="/img2.jpg"
+          alt="Construction"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+          <div class="text-white">
+            <h4 class="text-xl font-semibold">Construction</h4>
+            <p class="text-sm">Bringing a decade of expertise to **building and road construction projects**, focusing on modern, durable engineering.</p>
+          </div>
+        </div>
+      </a>
+
+      <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96">
+        <img
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          src="/img1.jpg"
+          alt="Water Works"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+          <div class="text-white">
+            <h4 class="text-xl font-semibold">Water Resource Management</h4>
+            <p class="text-sm">Providing comprehensive services including professional **water drilling, design, and supervision** for communities and industries.</p>
+          </div>
+        </div>
+      </a>
+
     </div>
   </div>
 </section>
@@ -1106,52 +1173,201 @@ readMoreButtons.forEach(button => {
               console.error('Error loading sectors:', error);
           }
       }
+// Load commitments - using the old design layout
+async function loadCommitments() {
+    try {
+        const response = await fetch(`${API_BASE}/commitments`);
+        const commitments = await response.json();
+        
+        const commitmentsContainer = document.getElementById('commitmentsContainer');
+        if (commitmentsContainer && commitments.length > 0) {
+            // Create the grid layout exactly like the old design
+            commitmentsContainer.innerHTML = `
+                <div class="rounded-2xl overflow-hidden shadow-soft relative h-96 bg-gray-100 p-6 flex flex-col justify-center items-center text-center lg:col-span-2">
+                    <p class="text-5xl md:text-4xl font-bold text-primary-600 my-4">${commitments[0]?.title || 'Our Commitment'}</p>
+                    <p class="text-slate-600 text-sm max-w-sm">${commitments[0]?.description || 'We are dedicated to ethical and sustainable practices across our key sectors.'}</p>
+                    <a href="#about" class="mt-4 px-6 py-3 bg-white text-gray-800 rounded-full shadow-md font-semibold hover:bg-gray-200 transition-colors">
+                        Learn More
+                    </a>
+                </div>
 
-      // Load commitments
-      async function loadCommitments() {
-          try {
-              const response = await fetch(`${API_BASE}/commitments`);
-              const commitments = await response.json();
-              
-              const commitmentsContainer = document.getElementById('commitmentsContainer');
-              if (commitmentsContainer && commitments.length > 0) {
-                  commitmentsContainer.innerHTML = commitments.map(commitment => `
-                      <div class="rounded-2xl overflow-hidden shadow-soft relative h-96 bg-gray-100 p-6 flex flex-col justify-center items-center text-center ${commitment.display_order === 1 ? 'lg:col-span-2' : ''}">
-                          <p class="text-5xl md:text-4xl font-bold text-primary-600 my-4">${commitment.title}</p>
-                          <p class="text-slate-600 text-sm max-w-sm">${commitment.description}</p>
-                          <a href="#about" class="mt-4 px-6 py-3 bg-white text-gray-800 rounded-full shadow-md font-semibold hover:bg-gray-200 transition-colors">
-                              Learn More
-                          </a>
-                      </div>
-                  `).join('');
-              } else {
-                  // Fallback content if no commitments found
-                  commitmentsContainer.innerHTML = `
-                      <div class="rounded-2xl overflow-hidden shadow-soft relative h-96 bg-gray-100 p-6 flex flex-col justify-center items-center text-center lg:col-span-2">
-                          <p class="text-5xl md:text-4xl font-bold text-primary-600 my-4">Our Commitment</p>
-                          <p class="text-slate-600 text-sm max-w-sm">
-                              We are dedicated to ethical and sustainable practices across our key sectors, including mining, construction, water-works and agriculture, ensuring the well-being of both the environment and our communities.
-                          </p>
-                          <a href="#about" class="mt-4 px-6 py-3 bg-white text-gray-800 rounded-full shadow-md font-semibold hover:bg-gray-200 transition-colors">
-                              Learn More
-                          </a>
-                      </div>
-                      <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96 lg:col-span-2">
-                          <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="/img1.jpg" alt="Mining Operations" />
-                          <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
-                              <div class="text-white">
-                                  <h4 class="text-xl font-semibold">Mineral Mining</h4>
-                                  <p class="text-sm">Producing and exporting high-quality minerals like Gemstone, Gold, and Lithium from sites across Oromia and Dire Dawa.</p>
-                              </div>
-                          </div>
-                      </a>
-                  `;
-              }
-          } catch (error) {
-              console.error('Error loading commitments:', error);
-          }
-      }
+                ${commitments.slice(1).map((commitment, index) => {
+                    const imageUrls = ['/img1.jpg', '/img3.jpg', '/img2.jpg', '/img1.jpg'];
+                    const titles = ['Mineral Mining', 'Agriculture', 'Construction', 'Water Resource Management'];
+                    const descriptions = [
+                        'Producing and exporting high-quality minerals like **Gemstone, Gold, and Lithium** from sites across Oromia and Dire Dawa.',
+                        'Managing over 200 hectares of farmland to grow **Sesame, Mung Beans, Chickpeas**, and other export-quality crops.',
+                        'Bringing a decade of expertise to **building and road construction projects**, focusing on modern, durable engineering.',
+                        'Providing comprehensive services including professional **water drilling, design, and supervision** for communities and industries.'
+                    ];
+                    
+                    // Corrected grid span logic
+                    let spanClass = '';
+                    if (index === 0) { // Second item (Agriculture) - normal span
+                        spanClass = '';
+                    } else if (index === 1) { // Third item (Construction) - span 2 columns
+                        spanClass = 'lg:col-span-2';
+                    } else if (index === 2) { // Fourth item (Water Works) - normal span
+                        spanClass = '';
+                    }
+                    
+                    return `
+                        <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96 ${spanClass}">
+                            <img
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                src="${commitment.image_url || imageUrls[index]}"
+                                alt="${commitment.title}"
+                            />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                                <div class="text-white">
+                                    <h4 class="text-xl font-semibold">${commitment.title || titles[index]}</h4>
+                                    <p class="text-sm">${commitment.description || descriptions[index]}</p>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('')}
+            `;
+        } else {
+            // Fallback content if no commitments found - exact old design
+            commitmentsContainer.innerHTML = `
+                <div class="rounded-2xl overflow-hidden shadow-soft relative h-96 bg-gray-100 p-6 flex flex-col justify-center items-center text-center lg:col-span-2">
+                    <p class="text-5xl md:text-4xl font-bold text-primary-600 my-4">Our Commitment</p>
+                    <p class="text-slate-600 text-sm max-w-sm">
+                        We are dedicated to ethical and sustainable practices across our key sectors, including mining, construction, water-works and agriculture, ensuring the well-being of both the environment and our communities. Our approach is built on a foundation of extensive experience and a steadfast commitment to positive impact.
+                    </p>
+                    <a href="#about" class="mt-4 px-6 py-3 bg-white text-gray-800 rounded-full shadow-md font-semibold hover:bg-gray-200 transition-colors">
+                        Learn More
+                    </a>
+                </div>
 
+                <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96">
+                    <img
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        src="/img1.jpg"
+                        alt="Mining Operations"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                        <div class="text-white">
+                            <h4 class="text-xl font-semibold">Mineral Mining</h4>
+                            <p class="text-sm">Producing and exporting high-quality minerals like **Gemstone, Gold, and Lithium** from sites across Oromia and Dire Dawa.</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96">
+                    <img
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        src="/img3.jpg"
+                        alt="Agriculture"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                        <div class="text-white">
+                            <h4 class="text-xl font-semibold">Agriculture</h4>
+                            <p class="text-sm">Managing over 200 hectares of farmland to grow **Sesame, Mung Beans, Chickpeas**, and other export-quality crops.</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96 lg:col-span-2">
+                    <img
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        src="/img2.jpg"
+                        alt="Construction"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                        <div class="text-white">
+                            <h4 class="text-xl font-semibold">Construction</h4>
+                            <p class="text-sm">Bringing a decade of expertise to **building and road construction projects**, focusing on modern, durable engineering.</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96">
+                    <img
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        src="/img1.jpg"
+                        alt="Water Works"
+                    />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                        <div class="text-white">
+                            <h4 class="text-xl font-semibold">Water Resource Management</h4>
+                            <p class="text-sm">Providing comprehensive services including professional **water drilling, design, and supervision** for communities and industries.</p>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading commitments:', error);
+    }
+}// Load commitments - simplified version
+async function loadCommitments() {
+    try {
+        const response = await fetch(`${API_BASE}/commitments`);
+        const commitments = await response.json();
+        
+        const commitmentsContainer = document.getElementById('commitmentsContainer');
+        if (commitmentsContainer && commitments.length > 0) {
+            commitmentsContainer.innerHTML = `
+                <!-- Our Commitment Card -->
+                <div class="rounded-2xl overflow-hidden shadow-soft relative h-96 bg-gray-100 p-6 flex flex-col justify-center items-center text-center lg:col-span-2">
+                    <p class="text-5xl md:text-4xl font-bold text-primary-600 my-4">${commitments[0]?.title || 'Our Commitment'}</p>
+                    <p class="text-slate-600 text-sm max-w-sm">${commitments[0]?.description || 'We are dedicated to ethical and sustainable practices across our key sectors.'}</p>
+                    <a href="#about" class="mt-4 px-6 py-3 bg-white text-gray-800 rounded-full shadow-md font-semibold hover:bg-gray-200 transition-colors">
+                        Learn More
+                    </a>
+                </div>
+
+                <!-- Mining -->
+                <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96 lg:col-span-2">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="${commitments[1]?.image_url || '/img1.jpg'}" alt="${commitments[1]?.title || 'Mining Operations'}" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                        <div class="text-white">
+                            <h4 class="text-xl font-semibold">${commitments[1]?.title || 'Mineral Mining'}</h4>
+                            <p class="text-sm">${commitments[1]?.description || 'Producing and exporting high-quality minerals like Gemstone, Gold, and Lithium from sites across Oromia and Dire Dawa.'}</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Agriculture -->
+                <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="${commitments[2]?.image_url || '/img3.jpg'}" alt="${commitments[2]?.title || 'Agriculture'}" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                        <div class="text-white">
+                            <h4 class="text-xl font-semibold">${commitments[2]?.title || 'Agriculture'}</h4>
+                            <p class="text-sm">${commitments[2]?.description || 'Managing over 200 hectares of farmland to grow Sesame, Mung Beans, Chickpeas, and other export-quality crops.'}</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Construction -->
+                <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96 lg:col-span-2">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="${commitments[3]?.image_url || '/img2.jpg'}" alt="${commitments[3]?.title || 'Construction'}" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                        <div class="text-white">
+                            <h4 class="text-xl font-semibold">${commitments[3]?.title || 'Construction'}</h4>
+                            <p class="text-sm">${commitments[3]?.description || 'Bringing a decade of expertise to building and road construction projects, focusing on modern, durable engineering.'}</p>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Water Works -->
+                <a href="#" class="block rounded-2xl overflow-hidden shadow-soft group relative h-96">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="${commitments[4]?.image_url || '/img1.jpg'}" alt="${commitments[4]?.title || 'Water Works'}" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 flex items-end p-6">
+                        <div class="text-white">
+                            <h4 class="text-xl font-semibold">${commitments[4]?.title || 'Water Resource Management'}</h4>
+                            <p class="text-sm">${commitments[4]?.description || 'Providing comprehensive services including professional water drilling, design, and supervision for communities and industries.'}</p>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading commitments:', error);
+    }
+}
       // Load leadership
       async function loadLeadership() {
           try {

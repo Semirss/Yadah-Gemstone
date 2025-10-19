@@ -5,6 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Yadah Gemstone PLC</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #4674B7;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn-loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .slide-up {
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .skeleton-loader {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            animation: toastIn 0.5s ease-out, toastOut 0.5s ease-in 4.5s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .toast-success { background-color: #10B981; }
+        .toast-error { background-color: #EF4444; }
+        
+        @keyframes toastIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes toastOut {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
+        }
+        
+        .draggable {
+            cursor: move;
+            transition: transform 0.2s ease;
+        }
+        
+        .draggable.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+        
+        .sortable-ghost {
+            opacity: 0.3;
+            background: #E5E7EB;
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-top: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .image-preview:hover {
+            transform: scale(1.05);
+        }
+    </style>
     <script>
         tailwind.config = {
             theme: {
@@ -28,28 +142,28 @@
         }
     </script>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen antialiased font-sans">
     <div class="container mx-auto px-4 py-8">
         <!-- Login Form -->
-        <div id="loginForm" class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-2xl font-bold text-center mb-6">Admin Login</h2>
+        <div id="loginForm" class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 fade-in border border-gray-200">
+            <h2 class="text-3xl font-extrabold text-center mb-8 text-gray-900">Admin Login</h2>
             <form id="loginFormElement">
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="username">
                         Username
                     </label>
                     <input type="text" id="username" name="username" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
                 </div>
-                <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                <div class="mb-8">
+                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="password">
                         Password
                     </label>
                     <input type="password" id="password" name="password" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
                 </div>
-                <button type="submit"
-                    class="w-full bg-primary-500 text-white py-2 px-4 rounded-md hover:bg-primary-600 transition-colors">
+                <button type="submit" id="loginBtn"
+                    class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 flex justify-center items-center shadow-md">
                     Login
                 </button>
             </form>
@@ -57,126 +171,359 @@
         </div>
 
         <!-- Admin Dashboard -->
-        <div id="adminDashboard" class="hidden">
+        <div id="adminDashboard" class="hidden fade-in">
             <div class="flex justify-between items-center mb-8">
-                <h1 class="text-3xl font-bold">Admin Dashboard</h1>
-                <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">
+                <h1 class="text-4xl font-extrabold text-gray-900">Admin Dashboard</h1>
+                <button id="logoutBtn" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-all duration-200 transform hover:scale-105 shadow-md">
                     Logout
                 </button>
             </div>
 
             <!-- Tabs -->
-            <div class="mb-6">
-                <div class="flex space-x-1">
-                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-primary-500 text-white" data-tab="sectors">Our Sectors</button>
-                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-gray-200" data-tab="commitments">Our Commitment</button>
-                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-gray-200" data-tab="leadership">Leadership Team</button>
-                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-gray-200" data-tab="mining">Mining Vision & Minerals</button>
-                    <button class="tab-btn px-4 py-2 rounded-t-lg bg-gray-200" data-tab="agriculture">Agricultural Products</button>
+            <div class="mb-6 bg-white rounded-t-xl shadow-md overflow-hidden">
+                <div class="flex space-x-1 overflow-x-auto">
+                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-primary-500 text-white font-semibold whitespace-nowrap transition-all duration-200 hover:bg-primary-600" data-tab="sectors">Our Sectors</button>
+                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-gray-200 text-gray-700 font-semibold whitespace-nowrap transition-all duration-200 hover:bg-gray-300" data-tab="commitments">Our Commitment</button>
+                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-gray-200 text-gray-700 font-semibold whitespace-nowrap transition-all duration-200 hover:bg-gray-300" data-tab="leadership">Leadership Team</button>
+                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-gray-200 text-gray-700 font-semibold whitespace-nowrap transition-all duration-200 hover:bg-gray-300" data-tab="mining">Mining Vision & Minerals</button>
+                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-gray-200 text-gray-700 font-semibold whitespace-nowrap transition-all duration-200 hover:bg-gray-300" data-tab="agriculture">Agricultural Products</button>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="globalLoading" class="hidden fixed top-4 right-4 bg-primary-500 text-white px-6 py-3 rounded-lg shadow-xl z-50 transform scale-100 transition-transform duration-200">
+                <div class="flex items-center space-x-3">
+                    <div class="loading-spinner"></div>
+                    <span class="font-medium">Processing...</span>
                 </div>
             </div>
 
             <!-- Tab Content -->
-            <div id="tabContent">
+            <div id="tabContent" class="bg-white rounded-b-xl shadow-md p-6">
                 <!-- Sectors Tab -->
-                <div id="sectorsTab" class="tab-panel">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold">Our Sectors</h2>
-                        <button onclick="showAddForm('sector')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                <div id="sectorsTab" class="tab-panel slide-up">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-extrabold text-gray-900">Our Sectors</h2>
+                        <button onclick="showAddForm('sector')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
                             Add Sector
                         </button>
                     </div>
-                    <div id="sectorsList" class="space-y-4"></div>
+                    <div class="mb-4 flex items-center space-x-4">
+                        <input type="text" id="sectorsSearch" placeholder="Search sectors..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <button onclick="sortItems('sectors')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
+                    </div>
+                    <div id="sectorsLoading" class="hidden">
+                        <div class="space-y-4">
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                        </div>
+                    </div>
+                    <div id="sectorsList" class="space-y-4 sortable"></div>
                 </div>
 
                 <!-- Commitments Tab -->
-                <div id="commitmentsTab" class="tab-panel hidden">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold">Our Commitment</h2>
-                        <button onclick="showAddForm('commitment')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                <div id="commitmentsTab" class="tab-panel hidden slide-up">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-extrabold text-gray-900">Our Commitment</h2>
+                        <button onclick="showAddForm('commitment')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
                             Add Commitment
                         </button>
                     </div>
-                    <div id="commitmentsList" class="space-y-4"></div>
+                    <div class="mb-4 flex items-center space-x-4">
+                        <input type="text" id="commitmentsSearch" placeholder="Search commitments..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <button onclick="sortItems('commitments')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
+                    </div>
+                    <div id="commitmentsLoading" class="hidden">
+                        <div class="space-y-4">
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                        </div>
+                    </div>
+                    <div id="commitmentsList" class="space-y-4 sortable"></div>
                 </div>
 
                 <!-- Leadership Tab -->
-                <div id="leadershipTab" class="tab-panel hidden">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold">Leadership Team</h2>
-                        <button onclick="showAddForm('leadership')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                <div id="leadershipTab" class="tab-panel hidden slide-up">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-extrabold text-gray-900">Leadership Team</h2>
+                        <button onclick="showAddForm('leadership')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
                             Add Member
                         </button>
                     </div>
-                    <div id="leadershipList" class="space-y-4"></div>
+                    <div class="mb-4 flex items-center space-x-4">
+                        <input type="text" id="leadershipSearch" placeholder="Search members..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <button onclick="sortItems('leadership')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
+                    </div>
+                    <div id="leadershipLoading" class="hidden">
+                        <div class="space-y-4">
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                        </div>
+                    </div>
+                    <div id="leadershipList" class="space-y-4 sortable"></div>
                 </div>
 
                 <!-- Mining Tab -->
-                <div id="miningTab" class="tab-panel hidden">
+                <div id="miningTab" class="tab-panel hidden slide-up">
                     <div class="grid md:grid-cols-2 gap-8">
-                        <div>
-                            <h2 class="text-2xl font-bold mb-4">Mining Vision</h2>
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                            <h2 class="text-3xl font-extrabold mb-6 text-gray-900">Mining Vision</h2>
                             <div id="miningVisionForm">
-                                <form id="miningVisionFormElement" class="space-y-4">
+                                <form id="miningVisionFormElement" class="space-y-6">
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Title</label>
-                                        <input type="text" id="visionTitle" name="title" class="w-full border rounded-md px-3 py-2">
+                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Title</label>
+                                        <input type="text" id="visionTitle" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Content</label>
-                                        <textarea id="visionContent" name="content" rows="6" class="w-full border rounded-md px-3 py-2"></textarea>
+                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Content</label>
+                                        <textarea id="visionContent" name="content" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"></textarea>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium mb-1">Image URL</label>
-                                        <input type="text" id="visionImage" name="image_url" class="w-full border rounded-md px-3 py-2">
+                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Image URL</label>
+                                        <input type="text" id="visionImage" name="image_url" oninput="previewImage(this, 'visionImagePreview')" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
+                                        <img id="visionImagePreview" class="image-preview hidden" src="" alt="Image Preview">
                                     </div>
-                                    <button type="submit" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                                    <button type="submit" id="saveVisionBtn" class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
                                         Save Vision
                                     </button>
                                 </form>
                             </div>
                         </div>
                         <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-2xl font-bold">Minerals</h2>
-                                <button onclick="showAddForm('mineral')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-3xl font-extrabold text-gray-900">Minerals</h2>
+                                <button onclick="showAddForm('mineral')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
                                     Add Mineral
                                 </button>
                             </div>
-                            <div id="mineralsList" class="space-y-4"></div>
+                            <div class="mb-4 flex items-center space-x-4">
+                                <input type="text" id="mineralsSearch" placeholder="Search minerals..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                <button onclick="sortItems('minerals')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
+                            </div>
+                            <div id="mineralsLoading" class="hidden">
+                                <div class="space-y-4">
+                                    <div class="skeleton-loader h-24 rounded-xl"></div>
+                                    <div class="skeleton-loader h-24 rounded-xl"></div>
+                                    <div class="skeleton-loader h-24 rounded-xl"></div>
+                                </div>
+                            </div>
+                            <div id="mineralsList" class="space-y-4 sortable"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Agriculture Tab -->
-                <div id="agricultureTab" class="tab-panel hidden">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-2xl font-bold">Agricultural Products</h2>
-                        <button onclick="showAddForm('agriculturalProduct')" class="bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600">
-                            Add Product
-                        </button>
+                <div id="agricultureTab" class="tab-panel hidden slide-up">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                            <h2 class="text-3xl font-extrabold mb-6 text-gray-900">Agricultural Division</h2>
+                            <div id="agriculturalDivisionForm">
+                                <form id="agriculturalDivisionFormElement" class="space-y-6">
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Title</label>
+                                        <input type="text" id="divisionTitle" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Content</label>
+                                        <textarea id="divisionContent" name="content" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Image URL</label>
+                                        <input type="text" id="divisionImage" name="image_url" oninput="previewImage(this, 'divisionImagePreview')" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
+                                        <img id="divisionImagePreview" class="image-preview hidden" src="" alt="Image Preview">
+                                    </div>
+                                    <button type="submit" id="saveDivisionBtn" class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
+                                        Save Division Info
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-3xl font-extrabold text-gray-900">Agricultural Products</h2>
+                                <button onclick="showAddForm('agriculturalProduct')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
+                                    Add Product
+                                </button>
+                            </div>
+                            <div class="mb-4 flex items-center space-x-4">
+                                <input type="text" id="agriculturalProductsSearch" placeholder="Search products..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                <button onclick="sortItems('agriculturalProducts')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
+                            </div>
+                            <div id="agriculturalProductsLoading" class="hidden">
+                                <div class="space-y-4">
+                                    <div class="skeleton-loader h-24 rounded-xl"></div>
+                                    <div class="skeleton-loader h-24 rounded-xl"></div>
+                                    <div class="skeleton-loader h-24 rounded-xl"></div>
+                                </div>
+                            </div>
+                            <div id="agriculturalProductsList" class="space-y-4 sortable"></div>
+                        </div>
                     </div>
-                    <div id="agriculturalProductsList" class="space-y-4"></div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Modal for Add/Edit Forms -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
-        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 id="modalTitle" class="text-xl font-bold mb-4"></h3>
-            <form id="modalForm" class="space-y-4"></form>
-            <div class="flex justify-end space-x-2 mt-6">
-                <button type="button" onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-md">Cancel</button>
-                <button type="submit" form="modalForm" class="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600">Save</button>
+            <!-- Modal for Add/Edit Forms -->
+            <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity duration-300">
+                <div class="bg-white rounded-xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl scale-in border border-gray-200">
+                    <h3 id="modalTitle" class="text-2xl font-extrabold mb-6 text-gray-900"></h3>
+                    <form id="modalForm" class="space-y-6"></form>
+                    <div class="flex justify-end space-x-4 mt-8">
+                        <button type="button" onclick="closeModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:scale-105">Cancel</button>
+                        <button type="submit" id="modalSubmitBtn" form="modalForm" class="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
+                            Save
+                        </button>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- Toast Container -->
+            <div id="toastContainer"></div>
     </div>
 
     <script>
         const API_BASE = '/api';
         let token = localStorage.getItem('adminToken');
+        let currentTab = 'sectors';
+
+        // Utility functions for loading states
+        function showLoading(button) {
+            const originalText = button.innerHTML;
+            button.innerHTML = '<div class="loading-spinner"></div> Loading...';
+            button.disabled = true;
+            button.classList.add('btn-loading');
+            return originalText;
+        }
+
+        function hideLoading(button, originalText) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.classList.remove('btn-loading');
+        }
+
+        function showGlobalLoading() {
+            document.getElementById('globalLoading').classList.remove('hidden');
+        }
+
+        function hideGlobalLoading() {
+            document.getElementById('globalLoading').classList.add('hidden');
+        }
+
+        function showTabLoading(tab) {
+            const loadingElement = document.getElementById(`${tab}Loading`);
+            const listElement = document.getElementById(`${tab}List`);
+            if (loadingElement && listElement) {
+                loadingElement.classList.remove('hidden');
+                listElement.innerHTML = '';
+            }
+        }
+
+        function hideTabLoading(tab) {
+            const loadingElement = document.getElementById(`${tab}Loading`);
+            if (loadingElement) {
+                loadingElement.classList.add('hidden');
+            }
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        // Image preview function
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.value) {
+                preview.src = input.value;
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+        }
+
+        // Drag and drop sorting
+        function initSortable(listId) {
+            const list = document.getElementById(listId);
+            if (!list) return;
+            list.addEventListener('dragstart', (e) => {
+                e.target.closest('.draggable').classList.add('dragging');
+            });
+            list.addEventListener('dragend', (e) => {
+                e.target.closest('.draggable').classList.remove('dragging');
+            });
+            list.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(list, e.clientY);
+                const draggable = document.querySelector('.dragging');
+                if (afterElement == null) {
+                    list.appendChild(draggable);
+                } else {
+                    list.insertBefore(draggable, afterElement);
+                }
+            });
+            list.addEventListener('drop', async (e) => {
+                const items = Array.from(list.children);
+                const type = listId.replace('List', '');
+                const endpoint = getEndpoint(type.slice(0, -1)); // Remove 's' for singular
+                showGlobalLoading();
+                try {
+                    for (let i = 0; i < items.length; i++) {
+                        const id = items[i].dataset.id;
+                        await fetch(`${API_BASE}/${endpoint}/${id}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ display_order: i + 1 })
+                        });
+                    }
+                    showToast('Order updated successfully!');
+                } catch (error) {
+                    showToast('Error updating order', 'error');
+                } finally {
+                    hideGlobalLoading();
+                }
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // Search function
+        function searchItems(listId, searchId) {
+            const search = document.getElementById(searchId).value.toLowerCase();
+            const list = document.getElementById(listId);
+            Array.from(list.children).forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(search) ? '' : 'none';
+            });
+        }
+
+        // Sort function (client-side by display_order)
+        function sortItems(tab) {
+            const list = document.getElementById(`${tab}List`);
+            const items = Array.from(list.children);
+            items.sort((a, b) => (a.dataset.order || 0) - (b.dataset.order || 0));
+            items.forEach(item => list.appendChild(item));
+            showToast('Items sorted by display order');
+        }
 
         // Check if user is already logged in
         if (token) {
@@ -186,6 +533,9 @@
         // Login functionality
         document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const button = document.getElementById('loginBtn');
+            const originalText = showLoading(button);
+            
             const formData = new FormData(e.target);
             const credentials = {
                 username: formData.get('username'),
@@ -212,8 +562,10 @@
                     document.getElementById('loginError').classList.remove('hidden');
                 }
             } catch (error) {
-                document.getElementById('loginError').textContent = 'Login failed';
+                document.getElementById('loginError').textContent = 'Login failed. Please try again.';
                 document.getElementById('loginError').classList.remove('hidden');
+            } finally {
+                hideLoading(button, originalText);
             }
         });
 
@@ -231,9 +583,9 @@
                 // Update active tab
                 document.querySelectorAll('.tab-btn').forEach(b => {
                     b.classList.remove('bg-primary-500', 'text-white');
-                    b.classList.add('bg-gray-200');
+                    b.classList.add('bg-gray-200', 'text-gray-700');
                 });
-                btn.classList.remove('bg-gray-200');
+                btn.classList.remove('bg-gray-200', 'text-gray-700');
                 btn.classList.add('bg-primary-500', 'text-white');
 
                 // Show active tab content
@@ -241,9 +593,12 @@
                 document.querySelectorAll('.tab-panel').forEach(panel => {
                     panel.classList.add('hidden');
                 });
-                document.getElementById(`${tabName}Tab`).classList.remove('hidden');
+                const activePanel = document.getElementById(`${tabName}Tab`);
+                activePanel.classList.remove('hidden');
+                activePanel.classList.add('slide-up');
 
                 // Load tab data
+                currentTab = tabName;
                 loadTabData(tabName);
             });
         });
@@ -255,23 +610,42 @@
         }
 
         async function loadTabData(tabName) {
-            switch (tabName) {
-                case 'sectors':
-                    await loadSectors();
-                    break;
-                case 'commitments':
-                    await loadCommitments();
-                    break;
-                case 'leadership':
-                    await loadLeadership();
-                    break;
-                case 'mining':
-                    await loadMiningVision();
-                    await loadMinerals();
-                    break;
-                case 'agriculture':
-                    await loadAgriculturalProducts();
-                    break;
+            showTabLoading(tabName);
+            
+            try {
+                switch (tabName) {
+                    case 'sectors':
+                        await loadSectors();
+                        initSortable('sectorsList');
+                        document.getElementById('sectorsSearch').addEventListener('input', () => searchItems('sectorsList', 'sectorsSearch'));
+                        break;
+                    case 'commitments':
+                        await loadCommitments();
+                        initSortable('commitmentsList');
+                        document.getElementById('commitmentsSearch').addEventListener('input', () => searchItems('commitmentsList', 'commitmentsSearch'));
+                        break;
+                    case 'leadership':
+                        await loadLeadership();
+                        initSortable('leadershipList');
+                        document.getElementById('leadershipSearch').addEventListener('input', () => searchItems('leadershipList', 'leadershipSearch'));
+                        break;
+                    case 'mining':
+                        await loadMiningVision();
+                        await loadMinerals();
+                        initSortable('mineralsList');
+                        document.getElementById('mineralsSearch').addEventListener('input', () => searchItems('mineralsList', 'mineralsSearch'));
+                        break;
+                    case 'agriculture':
+                        await loadAgriculturalDivision();
+                        await loadAgriculturalProducts();
+                        initSortable('agriculturalProductsList');
+                        document.getElementById('agriculturalProductsSearch').addEventListener('input', () => searchItems('agriculturalProductsList', 'agriculturalProductsSearch'));
+                        break;
+                }
+            } catch (error) {
+                console.error(`Error loading ${tabName}:`, error);
+            } finally {
+                hideTabLoading(tabName);
             }
         }
 
@@ -282,12 +656,12 @@
             const container = document.getElementById('sectorsList');
             
             container.innerHTML = sectors.map(sector => `
-                <div class="bg-white p-4 rounded-lg shadow border">
-                    <h3 class="font-bold text-lg">${sector.title}</h3>
-                    <p class="text-gray-600">${sector.description}</p>
-                    <div class="flex space-x-2 mt-2">
-                        <button onclick="editItem('sector', ${sector.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
-                        <button onclick="deleteItem('sector', ${sector.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${sector.id}" data-order="${sector.display_order || 0}">
+                    <h3 class="font-bold text-xl text-gray-900">${sector.title}</h3>
+                    <p class="text-gray-600 mt-2">${sector.description}</p>
+                    <div class="flex space-x-4 mt-4">
+                        <button onclick="editItem('sector', ${sector.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
+                        <button onclick="deleteItem('sector', ${sector.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
                     </div>
                 </div>
             `).join('');
@@ -299,12 +673,12 @@
             const container = document.getElementById('commitmentsList');
             
             container.innerHTML = commitments.map(commitment => `
-                <div class="bg-white p-4 rounded-lg shadow border">
-                    <h3 class="font-bold text-lg">${commitment.title}</h3>
-                    <p class="text-gray-600">${commitment.description}</p>
-                    <div class="flex space-x-2 mt-2">
-                        <button onclick="editItem('commitment', ${commitment.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
-                        <button onclick="deleteItem('commitment', ${commitment.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${commitment.id}" data-order="${commitment.display_order || 0}">
+                    <h3 class="font-bold text-xl text-gray-900">${commitment.title}</h3>
+                    <p class="text-gray-600 mt-2">${commitment.description}</p>
+                    <div class="flex space-x-4 mt-4">
+                        <button onclick="editItem('commitment', ${commitment.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
+                        <button onclick="deleteItem('commitment', ${commitment.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
                     </div>
                 </div>
             `).join('');
@@ -316,13 +690,13 @@
             const container = document.getElementById('leadershipList');
             
             container.innerHTML = leadership.map(member => `
-                <div class="bg-white p-4 rounded-lg shadow border">
-                    <h3 class="font-bold text-lg">${member.name}</h3>
-                    <p class="text-gray-600">${member.role}</p>
-                    <p class="text-sm text-gray-500">${member.description}</p>
-                    <div class="flex space-x-2 mt-2">
-                        <button onclick="editItem('leadership', ${member.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
-                        <button onclick="deleteItem('leadership', ${member.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${member.id}" data-order="${member.display_order || 0}">
+                    <h3 class="font-bold text-xl text-gray-900">${member.name}</h3>
+                    <p class="text-gray-600 mt-1 font-medium">${member.role}</p>
+                    <p class="text-sm text-gray-500 mt-2">${member.description}</p>
+                    <div class="flex space-x-4 mt-4">
+                        <button onclick="editItem('leadership', ${member.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
+                        <button onclick="deleteItem('leadership', ${member.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
                     </div>
                 </div>
             `).join('');
@@ -336,6 +710,7 @@
                 document.getElementById('visionTitle').value = vision.title || '';
                 document.getElementById('visionContent').value = vision.content || '';
                 document.getElementById('visionImage').value = vision.image_url || '';
+                previewImage(document.getElementById('visionImage'), 'visionImagePreview');
             }
         }
 
@@ -345,12 +720,12 @@
             const container = document.getElementById('mineralsList');
             
             container.innerHTML = minerals.map(mineral => `
-                <div class="bg-white p-4 rounded-lg shadow border">
-                    <h3 class="font-bold text-lg">${mineral.name}</h3>
-                    <p class="text-gray-600">${mineral.description}</p>
-                    <div class="flex space-x-2 mt-2">
-                        <button onclick="editItem('mineral', ${mineral.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
-                        <button onclick="deleteItem('mineral', ${mineral.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${mineral.id}" data-order="${mineral.display_order || 0}">
+                    <h3 class="font-bold text-xl text-gray-900">${mineral.name}</h3>
+                    <p class="text-gray-600 mt-2">${mineral.description}</p>
+                    <div class="flex space-x-4 mt-4">
+                        <button onclick="editItem('mineral', ${mineral.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
+                        <button onclick="deleteItem('mineral', ${mineral.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
                     </div>
                 </div>
             `).join('');
@@ -362,20 +737,87 @@
             const container = document.getElementById('agriculturalProductsList');
             
             container.innerHTML = products.map(product => `
-                <div class="bg-white p-4 rounded-lg shadow border">
-                    <h3 class="font-bold text-lg">${product.name}</h3>
-                    <p class="text-gray-600">${product.description}</p>
-                    <div class="flex space-x-2 mt-2">
-                        <button onclick="editItem('agriculturalProduct', ${product.id})" class="text-blue-500 hover:text-blue-700">Edit</button>
-                        <button onclick="deleteItem('agriculturalProduct', ${product.id})" class="text-red-500 hover:text-red-700">Delete</button>
+                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${product.id}" data-order="${product.display_order || 0}">
+                    <h3 class="font-bold text-xl text-gray-900">${product.name}</h3>
+                    <p class="text-gray-600 mt-2">${product.description}</p>
+                    <div class="flex space-x-4 mt-4">
+                        <button onclick="editItem('agriculturalProduct', ${product.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
+                        <button onclick="deleteItem('agriculturalProduct', ${product.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
                     </div>
                 </div>
             `).join('');
         }
 
+        // Load agricultural division
+        async function loadAgriculturalDivision() {
+            try {
+                const response = await fetch(`${API_BASE}/agricultural-division`);
+                const division = await response.json();
+                
+                console.log('Agricultural Division Data:', division); // Debug log
+                
+                if (division && division.title) {
+                    document.getElementById('divisionTitle').value = division.title || '';
+                    document.getElementById('divisionContent').value = division.content || '';
+                    document.getElementById('divisionImage').value = division.image_url || '';
+                    previewImage(document.getElementById('divisionImage'), 'divisionImagePreview');
+                } else {
+                    // Set default values if no data exists
+                    document.getElementById('divisionTitle').value = 'Our Agricultural Division';
+                    document.getElementById('divisionContent').value = 'Yadah Gemstone\'s agricultural division manages a vast farm of over 200 hectares in the southwest region of Ethiopia. We specialize in the cultivation of a wide range of export-quality cereal crops and spices, contributing to both local food security and international trade.\n\nWe maintain a key collaboration with TBA Trading PLC to enhance our operations and market reach, ensuring our products meet the highest quality standards for both domestic and international markets.';
+                    document.getElementById('divisionImage').value = 'img2.jpg';
+                    previewImage(document.getElementById('divisionImage'), 'divisionImagePreview');
+                }
+            } catch (error) {
+                console.error('Error loading agricultural division:', error);
+            }
+        }
+
+        // Agricultural division form
+        document.getElementById('agriculturalDivisionFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const button = document.getElementById('saveDivisionBtn');
+            const originalText = showLoading(button);
+            showGlobalLoading();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                title: formData.get('title'),
+                content: formData.get('content'),
+                image_url: formData.get('image_url')
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/agricultural-division`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showToast('Agricultural division saved successfully!');
+                } else {
+                    showToast('Error saving agricultural division', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving agricultural division:', error);
+                showToast('Error saving agricultural division', 'error');
+            } finally {
+                hideLoading(button, originalText);
+                hideGlobalLoading();
+            }
+        });
+
         // Mining vision form
         document.getElementById('miningVisionFormElement').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const button = document.getElementById('saveVisionBtn');
+            const originalText = showLoading(button);
+            showGlobalLoading();
+            
             const formData = new FormData(e.target);
             const data = {
                 title: formData.get('title'),
@@ -394,12 +836,15 @@
                 });
 
                 if (response.ok) {
-                    alert('Mining vision saved successfully!');
+                    showToast('Mining vision saved successfully!');
                 } else {
-                    alert('Error saving mining vision');
+                    showToast('Error saving mining vision', 'error');
                 }
             } catch (error) {
-                alert('Error saving mining vision');
+                showToast('Error saving mining vision', 'error');
+            } finally {
+                hideLoading(button, originalText);
+                hideGlobalLoading();
             }
         });
 
@@ -460,23 +905,45 @@
             
             const formHTML = formConfig.fields.map(field => `
                 <div>
-                    <label class="block text-sm font-medium mb-1">${field.label}</label>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">${field.label}</label>
                     ${field.type === 'textarea' ? 
-                        `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full border rounded-md px-3 py-2" rows="3"></textarea>` :
-                        `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full border rounded-md px-3 py-2">`
+                        `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" rows="3"></textarea>` :
+                        `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" value="${field.type === 'number' ? '0' : ''}">`
                     }
+                    ${field.name === 'image_url' ? `<img class="image-preview hidden mt-2" src="" alt="Preview">` : ''}
                 </div>
             `).join('');
 
-            document.getElementById('modalForm').innerHTML = formHTML;
-            document.getElementById('modalForm').onsubmit = (e) => handleFormSubmit(e, type);
+            const modalForm = document.getElementById('modalForm');
+            modalForm.innerHTML = formHTML;
+            modalForm.onsubmit = (e) => handleFormSubmit(e, type);
+            // Add preview listeners
+            const imageInput = modalForm.querySelector('input[name="image_url"]');
+            if (imageInput) {
+                imageInput.addEventListener('input', (e) => {
+                    const preview = e.target.nextElementSibling;
+                    if (preview && preview.tagName === 'IMG') {
+                        previewImage(e.target, preview.id || 'tempPreview'); // Use class instead of id
+                        preview.id = 'tempPreview'; // Temp id
+                    }
+                });
+            }
             document.getElementById('modal').classList.remove('hidden');
         }
 
         async function handleFormSubmit(e, type) {
             e.preventDefault();
+            const button = document.getElementById('modalSubmitBtn');
+            const originalText = showLoading(button);
+            showGlobalLoading();
+
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
+
+            // Convert display_order to number
+            if (data.display_order) {
+                data.display_order = parseInt(data.display_order);
+            }
 
             try {
                 const response = await fetch(`${API_BASE}/${getEndpoint(type)}`, {
@@ -491,12 +958,15 @@
                 if (response.ok) {
                     closeModal();
                     loadTabData(getTabName(type));
-                    alert('Item added successfully!');
+                    showToast('Item added successfully!');
                 } else {
-                    alert('Error adding item');
+                    showToast('Error adding item', 'error');
                 }
             } catch (error) {
-                alert('Error adding item');
+                showToast('Error adding item', 'error');
+            } finally {
+                hideLoading(button, originalText);
+                hideGlobalLoading();
             }
         }
 
@@ -529,6 +999,8 @@
         async function deleteItem(type, id) {
             if (!confirm('Are you sure you want to delete this item?')) return;
 
+            showGlobalLoading();
+            
             try {
                 const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
                     method: 'DELETE',
@@ -539,127 +1011,154 @@
 
                 if (response.ok) {
                     loadTabData(getTabName(type));
-                    alert('Item deleted successfully!');
+                    showToast('Item deleted successfully!');
                 } else {
-                    alert('Error deleting item');
+                    showToast('Error deleting item', 'error');
                 }
             } catch (error) {
-                alert('Error deleting item');
+                showToast('Error deleting item', 'error');
+            } finally {
+                hideGlobalLoading();
             }
         }
-// Edit functionality
-async function editItem(type, id) {
-    try {
-        // Fetch existing data
-        const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`);
-        const item = await response.json();
 
-        // Show edit form in modal
-        showEditForm(type, id, item);
-    } catch (error) {
-        console.error('Error fetching item for edit:', error);
-        alert('Error loading item for editing');
-    }
-}
-
-function showEditForm(type, id, item) {
-    const forms = {
-        sector: {
-            title: 'Edit Sector',
-            fields: [
-                { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
-                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
-                { name: 'link_url', label: 'Link URL', type: 'text', required: true, value: item.link_url },
-                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-            ]
-        },
-        commitment: {
-            title: 'Edit Commitment',
-            fields: [
-                { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
-                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
-                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-            ]
-        },
-        leadership: {
-            title: 'Edit Leadership Member',
-            fields: [
-                { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
-                { name: 'role', label: 'Role', type: 'text', required: true, value: item.role },
-                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                { name: 'more_content', label: 'More Content', type: 'textarea', required: false, value: item.more_content },
-                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-            ]
-        },
-        mineral: {
-            title: 'Edit Mineral',
-            fields: [
-                { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
-                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
-                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-            ]
-        },
-        agriculturalProduct: {
-            title: 'Edit Agricultural Product',
-            fields: [
-                { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
-                { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
-                { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-            ]
-        }
-    };
-
-    const formConfig = forms[type];
-    document.getElementById('modalTitle').textContent = formConfig.title;
-    
-    const formHTML = formConfig.fields.map(field => `
-        <div>
-            <label class="block text-sm font-medium mb-1">${field.label}</label>
-            ${field.type === 'textarea' ? 
-                `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full border rounded-md px-3 py-2" rows="3">${field.value || ''}</textarea>` :
-                `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full border rounded-md px-3 py-2" value="${field.value || ''}">`
+        // Edit functionality
+        async function editItem(type, id) {
+            showGlobalLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`);
+                const item = await response.json();
+                showEditForm(type, id, item);
+            } catch (error) {
+                console.error('Error fetching item for edit:', error);
+                showToast('Error loading item for editing', 'error');
+            } finally {
+                hideGlobalLoading();
             }
-        </div>
-    `).join('');
-
-    document.getElementById('modalForm').innerHTML = formHTML;
-    document.getElementById('modalForm').onsubmit = (e) => handleEditSubmit(e, type, id);
-    document.getElementById('modal').classList.remove('hidden');
-}
-
-async function handleEditSubmit(e, type, id) {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
-
-    try {
-        const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-            closeModal();
-            loadTabData(getTabName(type));
-            alert('Item updated successfully!');
-        } else {
-            alert('Error updating item');
         }
-    } catch (error) {
-        console.error('Error updating item:', error);
-        alert('Error updating item');
-    }
-}
-        // Note: Edit functionality would be similar but requires fetching existing data
-        // This is a simplified version - you would need to implement the full edit flow
+
+        function showEditForm(type, id, item) {
+            const forms = {
+                sector: {
+                    title: 'Edit Sector',
+                    fields: [
+                        { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                        { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                        { name: 'link_url', label: 'Link URL', type: 'text', required: true, value: item.link_url },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                    ]
+                },
+                commitment: {
+                    title: 'Edit Commitment',
+                    fields: [
+                        { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                        { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                    ]
+                },
+                leadership: {
+                    title: 'Edit Leadership Member',
+                    fields: [
+                        { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                        { name: 'role', label: 'Role', type: 'text', required: true, value: item.role },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                        { name: 'more_content', label: 'More Content', type: 'textarea', required: false, value: item.more_content || '' },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                    ]
+                },
+                mineral: {
+                    title: 'Edit Mineral',
+                    fields: [
+                        { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                        { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                    ]
+                },
+                agriculturalProduct: {
+                    title: 'Edit Agricultural Product',
+                    fields: [
+                        { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                        { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                    ]
+                }
+            };
+
+            const formConfig = forms[type];
+            document.getElementById('modalTitle').textContent = formConfig.title;
+            
+            const formHTML = formConfig.fields.map(field => `
+                <div>
+                    <label class="block text-sm font-semibold mb-2 text-gray-700">${field.label}</label>
+                    ${field.type === 'textarea' ? 
+                        `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" rows="3">${field.value || ''}</textarea>` :
+                        `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" value="${field.value || ''}">`
+                    }
+                    ${field.name === 'image_url' ? `<img class="image-preview mt-2 ${field.value ? '' : 'hidden'}" src="${field.value || ''}" alt="Preview">` : ''}
+                </div>
+            `).join('');
+
+            const modalForm = document.getElementById('modalForm');
+            modalForm.innerHTML = formHTML;
+            modalForm.onsubmit = (e) => handleEditSubmit(e, type, id);
+            // Add preview listeners
+            const imageInput = modalForm.querySelector('input[name="image_url"]');
+            if (imageInput) {
+                imageInput.addEventListener('input', (e) => {
+                    const preview = e.target.nextElementSibling;
+                    if (preview && preview.tagName === 'IMG') {
+                        previewImage(e.target, preview.id || 'tempPreview');
+                        preview.id = 'tempPreview';
+                    }
+                });
+            }
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        async function handleEditSubmit(e, type, id) {
+            e.preventDefault();
+            const button = document.getElementById('modalSubmitBtn');
+            const originalText = showLoading(button);
+            showGlobalLoading();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Convert display_order to number
+            if (data.display_order) {
+                data.display_order = parseInt(data.display_order);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    loadTabData(getTabName(type));
+                    showToast('Item updated successfully!');
+                } else {
+                    showToast('Error updating item', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating item:', error);
+                showToast('Error updating item', 'error');
+            } finally {
+                hideLoading(button, originalText);
+                hideGlobalLoading();
+            }
+        }
     </script>
 </body>
 </html>
