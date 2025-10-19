@@ -3,68 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Yadah Gemstone PLC</title>
+    <title>Admin Dashboard - Yadah Gemstone PLC</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
-        .loading-spinner {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #4674B7;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 8px;
+        /* [PRESERVED FROM USER] Custom background gradient for login */
+        body.login-bg {
+            background: #0f172a; /* Slate 900 fallback */
+            background-image: radial-gradient(at 0% 0%, #1e3a8a 0%, transparent 50%),
+                              radial-gradient(at 100% 100%, #4f46e5 0%, transparent 50%),
+                              linear-gradient(to bottom right, #0f172a, #020617);
+            min-height: 100vh;
+            overflow: hidden; /* Prevent scrolling on login page */
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .btn-loading {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-        
+
+        /* [PRESERVED FROM USER] Fade-in for the card */
         .fade-in {
-            animation: fadeIn 0.3s ease-in;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
+        /* [PRESERVED FROM USER] Custom glow effect on button hover */
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 5px rgba(99, 102, 241, 0.3);
+        }
+
+        /* [ENHANCED] Advanced styles for the admin dashboard */
+        :root {
+            --color-primary: #4f46e5; /* Indigo 600 */
+            --color-primary-hover: #4338ca; /* Indigo 700 */
+        }
+        
+        body.dashboard-bg {
+            background-color: #f1f5f9; /* Slate 100 */
+            overflow-y: auto; /* Allow scrolling only in dashboard */
+        }
+        
+        .font-sans { font-family: 'Inter', sans-serif; }
+
+        /* [NEW] Sidebar link styling */
+        .sidebar-link.active {
+            background-color: var(--color-primary);
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .sidebar-link.active svg {
+            color: #ffffff;
+        }
+
+        .skeleton-loader {
+            background-color: #e2e8f0; /* Slate 200 */
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            50% { opacity: .5; }
+        }
+
+        .image-preview {
+            margin-top: 1rem;
+            max-height: 200px;
+            width: 100%;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0; /* Slate 200 */
+        }
+
+        .loading-spinner {
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            width: 1rem;
+            height: 1rem;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
         .scale-in {
-            animation: scaleIn 0.3s ease-out;
+            animation: scaleIn 0.3s ease-out forwards;
         }
-        
         @keyframes scaleIn {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
         
-        .slide-up {
-            animation: slideUp 0.4s ease-out;
+        .bg-primary { background-color: var(--color-primary); }
+        .hover\:bg-primary-hover:hover { background-color: var(--color-primary-hover); }
+        .text-primary { color: var(--color-primary); }
+        .ring-primary { --tw-ring-color: var(--color-primary); }
+        .border-primary { border-color: var(--color-primary); }
+
+        /* Utility functions from old code */
+        .btn-loading {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
-        
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .skeleton-loader {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
+
         .toast {
             position: fixed;
             bottom: 20px;
@@ -104,204 +152,364 @@
             opacity: 0.3;
             background: #E5E7EB;
         }
-        
-        .image-preview {
-            max-width: 200px;
-            max-height: 200px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-top: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
+
+        #modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        
-        .image-preview:hover {
-            transform: scale(1.05);
+
+        #modal:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
         }
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#E6F0FF',
-                            100: '#CCDDFF',
-                            200: '#99BBFF',
-                            300: '#6699FF',
-                            400: '#4D7FFF',
-                            500: '#4674B7',
-                            600: '#3A5F9A',
-                            700: '#2E4A7D',
-                            800: '#223560',
-                            900: '#162043'
-                        }
-                    }
-                }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.75rem;
+            max-width: 32rem;
+            width: 100%;
+            max-height: 90vh;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        #modal:not(.hidden) .modal-content {
+            transform: scale(1);
+        }
+
+        /* Mobile sidebar styles */
+        .sidebar-mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+
+        .sidebar-mobile-overlay.active {
+            display: block;
+        }
+
+        .sidebar-mobile {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .sidebar-mobile.active {
+            transform: translateX(0);
+        }
+
+        @media (min-width: 1024px) {
+            .sidebar-mobile-overlay {
+                display: none !important;
             }
         }
-    </script>
+
+        /* Hide dashboard completely when not logged in */
+        #adminDashboard {
+            display: none;
+        }
+        
+        /* Ensure login container takes full viewport */
+        #loginContainer {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen antialiased font-sans">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Login Form -->
-        <div id="loginForm" class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 fade-in border border-gray-200">
-            <h2 class="text-3xl font-extrabold text-center mb-8 text-gray-900">Admin Login</h2>
-            <form id="loginFormElement">
-                <div class="mb-6">
-                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="username">
-                        Username
-                    </label>
-                    <input type="text" id="username" name="username" required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
-                </div>
-                <div class="mb-8">
-                    <label class="block text-gray-700 text-sm font-semibold mb-2" for="password">
-                        Password
-                    </label>
-                    <input type="password" id="password" name="password" required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
-                </div>
-                <button type="submit" id="loginBtn"
-                    class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 flex justify-center items-center shadow-md">
-                    Login
-                </button>
-            </form>
-            <div id="loginError" class="mt-4 text-red-500 text-center hidden"></div>
+<body class="font-sans antialiased login-bg">
+
+<!-- Login Container - Only this should be visible when not logged in -->
+<div id="loginContainer">
+  <div class="w-full max-w-md bg-slate-800/80 backdrop-blur-sm 
+     rounded-2xl border border-indigo-500/30 shadow-2xl shadow-indigo-900/40 
+     p-8 md:p-10 fade-in transition-all duration-300">
+    <h2 class="text-4xl font-extrabold text-center mb-10 text-white tracking-wider">
+        Admin <span class="text-indigo-400">Access</span>
+    </h2>
+    <form id="loginFormElement">
+        <div class="mb-6">
+            <label class="block text-indigo-300 text-sm font-semibold mb-2" for="username">
+                Username
+            </label>
+            <input type="text" id="username" name="username" required
+                placeholder="Enter system username"
+                class="w-full px-5 py-3 bg-slate-700/70 text-white placeholder-slate-400 
+                    border border-slate-700 rounded-xl focus:outline-none 
+                    focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
+                    transition-all duration-300 ease-in-out">
         </div>
+        <div class="mb-8">
+            <label class="block text-indigo-300 text-sm font-semibold mb-2" for="password">
+                Password
+            </label>
+            <input type="password" id="password" name="password" required
+                placeholder="Input secure password"
+                class="w-full px-5 py-3 bg-slate-700/70 text-white placeholder-slate-400 
+                    border border-slate-700 rounded-xl focus:outline-none 
+                    focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 
+                    transition-all duration-300 ease-in-out">
+        </div>
+        <button type="submit" id="loginBtn"
+            class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white 
+                py-3.5 px-4 rounded-xl font-bold text-lg tracking-wide 
+                shadow-lg shadow-indigo-500/30 hover:shadow-xl btn-glow
+                transition-all duration-300 transform hover:scale-[1.01] 
+                focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 inline-block" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25V6.75a3.75 3.75 0 10-7.5 0v3h7.5z" clip-rule="evenodd" />
+            </svg>
+            Secure Login
+        </button>
+    </form>
+    <div id="loginError" class="mt-6 p-3 bg-red-900/50 border border-red-700 text-red-300 text-center rounded-lg hidden">
+        <!-- Error message will appear here -->
+    </div>
+  </div>
+</div>
 
-        <!-- Admin Dashboard -->
-        <div id="adminDashboard" class="hidden fade-in">
-            <div class="flex justify-between items-center mb-8">
-                <h1 class="text-4xl font-extrabold text-gray-900">Admin Dashboard</h1>
-                <button id="logoutBtn" class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-all duration-200 transform hover:scale-105 shadow-md">
-                    Logout
+<!-- Admin Dashboard - Completely separate, only shown after login -->
+<div id="adminDashboard" class="h-screen w-full flex-col lg:flex">
+    <!-- Mobile Header -->
+    <header class="bg-white/80 backdrop-blur-sm border-b border-slate-200 p-4 sticky top-0 z-30 flex lg:hidden items-center justify-between">
+        <button id="mobileMenuBtn" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <h1 id="pageTitle" class="text-xl font-bold text-slate-800">Our Sectors</h1>
+        <div class="w-10"></div> <!-- Spacer for balance -->
+    </header>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-mobile-overlay"></div>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar for Desktop -->
+        <aside class="hidden lg:flex lg:w-64 flex-col bg-slate-800 text-slate-300 p-4">
+            <div class="flex items-center space-x-3 mb-10 px-2">
+                 <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                </div>
+                <h1 class="text-xl font-bold text-white">Admin Panel</h1>
+            </div>
+            
+            <nav class="flex-1 flex flex-col space-y-2">
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200 active" data-tab="sectors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                    <span>Our Sectors</span>
+                </button>
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-tab="commitments">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <span>Our Commitment</span>
+                </button>
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-tab="leadership">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <span>Leadership Team</span>
+                </button>
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-tab="mining">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    <span>Mining</span>
+                </button>
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-tab="agriculture">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 5.036A9.003 9.003 0 0112 3c1.789 0 3.47.533 4.884 1.448M10 21h4" /></svg>
+                    <span>Agriculture</span>
+                </button>
+            </nav>
+            
+            <div class="mt-auto">
+                 <button id="logoutBtn" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" /></svg>
+                    <span class="font-semibold">Logout</span>
                 </button>
             </div>
+        </aside>
 
-            <!-- Tabs -->
-            <div class="mb-6 bg-white rounded-t-xl shadow-md overflow-hidden">
-                <div class="flex space-x-1 overflow-x-auto">
-                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-primary-500 text-white font-semibold whitespace-nowrap transition-all duration-200 hover:bg-primary-600" data-tab="sectors">Our Sectors</button>
-                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-gray-200 text-gray-700 font-semibold whitespace-nowrap transition-all duration-200 hover:bg-gray-300" data-tab="commitments">Our Commitment</button>
-                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-gray-200 text-gray-700 font-semibold whitespace-nowrap transition-all duration-200 hover:bg-gray-300" data-tab="leadership">Leadership Team</button>
-                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-gray-200 text-gray-700 font-semibold whitespace-nowrap transition-all duration-200 hover:bg-gray-300" data-tab="mining">Mining Vision & Minerals</button>
-                    <button class="tab-btn px-6 py-3 rounded-t-lg bg-gray-200 text-gray-700 font-semibold whitespace-nowrap transition-all duration-200 hover:bg-gray-300" data-tab="agriculture">Agricultural Products</button>
-                </div>
-            </div>
-
-            <!-- Loading Indicator -->
-            <div id="globalLoading" class="hidden fixed top-4 right-4 bg-primary-500 text-white px-6 py-3 rounded-lg shadow-xl z-50 transform scale-100 transition-transform duration-200">
+        <!-- Sidebar for Mobile -->
+        <aside id="mobileSidebar" class="sidebar-mobile fixed top-0 left-0 h-full w-64 bg-slate-800 text-slate-300 p-4 z-50 lg:hidden">
+            <div class="flex items-center justify-between mb-10 px-2">
                 <div class="flex items-center space-x-3">
-                    <div class="loading-spinner"></div>
-                    <span class="font-medium">Processing...</span>
+                    <div class="bg-indigo-600 p-2 rounded-lg text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    </div>
+                    <h1 class="text-xl font-bold text-white">Admin Panel</h1>
                 </div>
+                <button id="closeMobileMenu" class="p-2 rounded-lg text-slate-300 hover:bg-slate-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
+            
+            <nav class="flex-1 flex flex-col space-y-2">
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200 active" data-tab="sectors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                    <span>Our Sectors</span>
+                </button>
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-tab="commitments">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <span>Our Commitment</span>
+                </button>
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-tab="leadership">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <span>Leadership Team</span>
+                </button>
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-tab="mining">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    <span>Mining</span>
+                </button>
+                <button class="sidebar-link flex items-center space-x-3 px-4 py-2.5 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-tab="agriculture">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2h10a2 2 0 002-2v-1a2 2 0 012-2h1.945M7.884 5.036A9.003 9.003 0 0112 3c1.789 0 3.47.533 4.884 1.448M10 21h4" /></svg>
+                    <span>Agriculture</span>
+                </button>
+            </nav>
+            
+            <div class="mt-auto">
+                 <button id="logoutBtnMobile" class="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" /></svg>
+                    <span class="font-semibold">Logout</span>
+                </button>
+            </div>
+        </aside>
 
-            <!-- Tab Content -->
-            <div id="tabContent" class="bg-white rounded-b-xl shadow-md p-6">
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col bg-slate-100 overflow-y-auto">
+            <header class="hidden lg:flex bg-white/80 backdrop-blur-sm border-b border-slate-200 p-4 sticky top-0 z-10">
+                <h1 id="pageTitleDesktop" class="text-2xl font-bold text-slate-800">Our Sectors</h1>
+            </header>
+
+            <div id="tabContent" class="p-4 lg:p-6">
                 <!-- Sectors Tab -->
                 <div id="sectorsTab" class="tab-panel slide-up">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-3xl font-extrabold text-gray-900">Our Sectors</h2>
-                        <button onclick="showAddForm('sector')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
-                            Add Sector
-                        </button>
-                    </div>
-                    <div class="mb-4 flex items-center space-x-4">
-                        <input type="text" id="sectorsSearch" placeholder="Search sectors..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <button onclick="sortItems('sectors')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
-                    </div>
-                    <div id="sectorsLoading" class="hidden">
-                        <div class="space-y-4">
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 lg:p-6">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                            <h2 class="text-xl lg:text-2xl font-bold text-slate-800">Manage Our Sectors</h2>
+                            <button onclick="showAddForm('sector')" class="bg-primary text-white px-4 py-2 lg:px-5 lg:py-2.5 rounded-lg hover:bg-primary-hover transition-all duration-200 transform hover:scale-105 shadow-md flex items-center justify-center space-x-2 font-semibold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                <span>Add Sector</span>
+                            </button>
                         </div>
+                        <div class="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="relative w-full sm:max-w-xs">
+                                <input type="text" id="sectorsSearch" placeholder="Search sectors..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 ring-primary">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </div>
+                            <button onclick="sortItems('sectors')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-all duration-200 font-semibold border border-slate-200">Sort by Order</button>
+                        </div>
+                        <div id="sectorsLoading" class="hidden space-y-4 pt-4">
+                            <div class="skeleton-loader h-20 rounded-xl"></div>
+                            <div class="skeleton-loader h-20 rounded-xl"></div>
+                            <div class="skeleton-loader h-20 rounded-xl"></div>
+                        </div>
+                        <div id="sectorsList" class="space-y-4 sortable"></div>
                     </div>
-                    <div id="sectorsList" class="space-y-4 sortable"></div>
                 </div>
 
                 <!-- Commitments Tab -->
                 <div id="commitmentsTab" class="tab-panel hidden slide-up">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-3xl font-extrabold text-gray-900">Our Commitment</h2>
-                        <button onclick="showAddForm('commitment')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
-                            Add Commitment
-                        </button>
-                    </div>
-                    <div class="mb-4 flex items-center space-x-4">
-                        <input type="text" id="commitmentsSearch" placeholder="Search commitments..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <button onclick="sortItems('commitments')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
-                    </div>
-                    <div id="commitmentsLoading" class="hidden">
-                        <div class="space-y-4">
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 lg:p-6">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                            <h2 class="text-xl lg:text-2xl font-bold text-slate-800">Manage Commitments</h2>
+                            <button onclick="showAddForm('commitment')" class="bg-primary text-white px-4 py-2 lg:px-5 lg:py-2.5 rounded-lg hover:bg-primary-hover transition-all duration-200 transform hover:scale-105 shadow-md flex items-center justify-center space-x-2 font-semibold">
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                               <span>Add Commitment</span>
+                            </button>
                         </div>
+                        <div class="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="relative w-full sm:max-w-xs">
+                                <input type="text" id="commitmentsSearch" placeholder="Search commitments..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 ring-primary">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </div>
+                            <button onclick="sortItems('commitments')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-all duration-200 font-semibold border border-slate-200">Sort by Order</button>
+                        </div>
+                        <div id="commitmentsLoading" class="hidden space-y-4 pt-4">
+                            <div class="skeleton-loader h-20 rounded-xl"></div>
+                            <div class="skeleton-loader h-20 rounded-xl"></div>
+                        </div>
+                        <div id="commitmentsList" class="space-y-4 sortable"></div>
                     </div>
-                    <div id="commitmentsList" class="space-y-4 sortable"></div>
                 </div>
 
                 <!-- Leadership Tab -->
                 <div id="leadershipTab" class="tab-panel hidden slide-up">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-3xl font-extrabold text-gray-900">Leadership Team</h2>
-                        <button onclick="showAddForm('leadership')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
-                            Add Member
-                        </button>
-                    </div>
-                    <div class="mb-4 flex items-center space-x-4">
-                        <input type="text" id="leadershipSearch" placeholder="Search members..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <button onclick="sortItems('leadership')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
-                    </div>
-                    <div id="leadershipLoading" class="hidden">
-                        <div class="space-y-4">
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
-                            <div class="skeleton-loader h-24 rounded-xl"></div>
+                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 lg:p-6">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                            <h2 class="text-xl lg:text-2xl font-bold text-slate-800">Manage Leadership Team</h2>
+                            <button onclick="showAddForm('leadership')" class="bg-primary text-white px-4 py-2 lg:px-5 lg:py-2.5 rounded-lg hover:bg-primary-hover transition-all duration-200 transform hover:scale-105 shadow-md flex items-center justify-center space-x-2 font-semibold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                                <span>Add Member</span>
+                            </button>
                         </div>
+                        <div class="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <div class="relative w-full sm:max-w-xs">
+                                <input type="text" id="leadershipSearch" placeholder="Search members..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 ring-primary">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </div>
+                            <button onclick="sortItems('leadership')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-all duration-200 font-semibold border border-slate-200">Sort by Order</button>
+                        </div>
+                        <div id="leadershipLoading" class="hidden space-y-4 pt-4">
+                            <div class="skeleton-loader h-20 rounded-xl"></div>
+                            <div class="skeleton-loader h-20 rounded-xl"></div>
+                        </div>
+                        <div id="leadershipList" class="space-y-4 sortable"></div>
                     </div>
-                    <div id="leadershipList" class="space-y-4 sortable"></div>
                 </div>
 
                 <!-- Mining Tab -->
                 <div id="miningTab" class="tab-panel hidden slide-up">
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                            <h2 class="text-3xl font-extrabold mb-6 text-gray-900">Mining Vision</h2>
-                            <div id="miningVisionForm">
-                                <form id="miningVisionFormElement" class="space-y-6">
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Title</label>
-                                        <input type="text" id="visionTitle" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Content</label>
-                                        <textarea id="visionContent" name="content" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"></textarea>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Image URL</label>
-                                        <input type="text" id="visionImage" name="image_url" oninput="previewImage(this, 'visionImagePreview')" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
-                                        <img id="visionImagePreview" class="image-preview hidden" src="" alt="Image Preview">
-                                    </div>
-                                    <button type="submit" id="saveVisionBtn" class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
-                                        Save Vision
-                                    </button>
-                                </form>
-                            </div>
+                    <div class="grid lg:grid-cols-2 gap-4 lg:gap-6">
+                        <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 text-slate-800">Mining Vision</h2>
+                            <form id="miningVisionFormElement" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2 text-gray-700">Title</label>
+                                    <input type="text" id="visionTitle" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2 text-gray-700">Content</label>
+                                    <textarea id="visionContent" name="content" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2 text-gray-700">Image URL</label>
+                                    <input type="text" id="visionImage" name="image_url" oninput="previewImage(this, 'visionImagePreview')" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
+                                    <img id="visionImagePreview" class="image-preview hidden" src="" alt="Image Preview">
+                                </div>
+                                <button type="submit" id="saveVisionBtn" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
+                                    Save Vision
+                                </button>
+                            </form>
                         </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="text-3xl font-extrabold text-gray-900">Minerals</h2>
-                                <button onclick="showAddForm('mineral')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
+                        <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-slate-200">
+                            <div class="flex justify-between items-center mb-4 lg:mb-6">
+                                <h2 class="text-xl lg:text-2xl font-bold text-slate-800">Minerals</h2>
+                                <button onclick="showAddForm('mineral')" class="bg-primary text-white px-4 py-2 lg:px-5 lg:py-2.5 rounded-lg hover:bg-primary-hover transition-all duration-200 transform hover:scale-105 shadow-md flex items-center justify-center space-x-2 font-semibold">
                                     Add Mineral
                                 </button>
                             </div>
-                            <div class="mb-4 flex items-center space-x-4">
+                            <div class="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                 <input type="text" id="mineralsSearch" placeholder="Search minerals..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                                <button onclick="sortItems('minerals')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
+                                <button onclick="sortItems('minerals')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-all duration-200">Sort by Order</button>
                             </div>
                             <div id="mineralsLoading" class="hidden">
                                 <div class="space-y-4">
@@ -314,43 +522,41 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Agriculture Tab -->
                 <div id="agricultureTab" class="tab-panel hidden slide-up">
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                            <h2 class="text-3xl font-extrabold mb-6 text-gray-900">Agricultural Division</h2>
-                            <div id="agriculturalDivisionForm">
-                                <form id="agriculturalDivisionFormElement" class="space-y-6">
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Title</label>
-                                        <input type="text" id="divisionTitle" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Content</label>
-                                        <textarea id="divisionContent" name="content" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"></textarea>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-2 text-gray-700">Image URL</label>
-                                        <input type="text" id="divisionImage" name="image_url" oninput="previewImage(this, 'divisionImagePreview')" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
-                                        <img id="divisionImagePreview" class="image-preview hidden" src="" alt="Image Preview">
-                                    </div>
-                                    <button type="submit" id="saveDivisionBtn" class="w-full bg-primary-500 text-white py-3 px-4 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
-                                        Save Division Info
-                                    </button>
-                                </form>
-                            </div>
+                     <div class="grid lg:grid-cols-2 gap-4 lg:gap-6">
+                        <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-slate-200">
+                            <h2 class="text-xl lg:text-2xl font-bold mb-4 lg:mb-6 text-slate-800">Agricultural Division</h2>
+                            <form id="agriculturalDivisionFormElement" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2 text-gray-700">Title</label>
+                                    <input type="text" id="divisionTitle" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2 text-gray-700">Content</label>
+                                    <textarea id="divisionContent" name="content" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-2 text-gray-700">Image URL</label>
+                                    <input type="text" id="divisionImage" name="image_url" oninput="previewImage(this, 'divisionImagePreview')" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
+                                    <img id="divisionImagePreview" class="image-preview hidden" src="" alt="Image Preview">
+                                </div>
+                                <button type="submit" id="saveDivisionBtn" class="w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
+                                    Save Division Info
+                                </button>
+                            </form>
                         </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="text-3xl font-extrabold text-gray-900">Agricultural Products</h2>
-                                <button onclick="showAddForm('agriculturalProduct')" class="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 shadow-md">
+                        <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-slate-200">
+                            <div class="flex justify-between items-center mb-4 lg:mb-6">
+                                <h2 class="text-xl lg:text-2xl font-bold text-slate-800">Agricultural Products</h2>
+                                <button onclick="showAddForm('agriculturalProduct')" class="bg-primary text-white px-4 py-2 lg:px-5 lg:py-2.5 rounded-lg hover:bg-primary-hover transition-all duration-200 transform hover:scale-105 shadow-md flex items-center justify-center space-x-2 font-semibold">
                                     Add Product
                                 </button>
                             </div>
-                            <div class="mb-4 flex items-center space-x-4">
+                            <div class="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                 <input type="text" id="agriculturalProductsSearch" placeholder="Search products..." class="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                                <button onclick="sortItems('agriculturalProducts')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-all duration-200">Sort by Order</button>
+                                <button onclick="sortItems('agriculturalProducts')" class="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-200 transition-all duration-200">Sort by Order</button>
                             </div>
                             <div id="agriculturalProductsLoading" class="hidden">
                                 <div class="space-y-4">
@@ -364,232 +570,297 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Modal for Add/Edit Forms -->
-            <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity duration-300">
-                <div class="bg-white rounded-xl p-8 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl scale-in border border-gray-200">
-                    <h3 id="modalTitle" class="text-2xl font-extrabold mb-6 text-gray-900"></h3>
-                    <form id="modalForm" class="space-y-6"></form>
-                    <div class="flex justify-end space-x-4 mt-8">
-                        <button type="button" onclick="closeModal()" class="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:scale-105">Cancel</button>
-                        <button type="submit" id="modalSubmitBtn" form="modalForm" class="px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
-                            Save
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Toast Container -->
-            <div id="toastContainer"></div>
+        </main>
     </div>
+</div>
 
-    <script>
-        const API_BASE = '/api';
-        let token = localStorage.getItem('adminToken');
-        let currentTab = 'sectors';
+<!-- Global Loading Indicator -->
+<div id="globalLoading" class="hidden fixed top-4 right-4 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-xl z-50 transform scale-100 transition-transform duration-200">
+    <div class="flex items-center space-x-2">
+        <div class="loading-spinner"></div>
+        <span class="font-medium text-sm">Processing...</span>
+    </div>
+</div>
 
-        // Utility functions for loading states
-        function showLoading(button) {
-            const originalText = button.innerHTML;
-            button.innerHTML = '<div class="loading-spinner"></div> Loading...';
-            button.disabled = true;
-            button.classList.add('btn-loading');
-            return originalText;
+<!-- Modal for Add/Edit Forms -->
+<div id="modal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 transition-opacity duration-300 p-4">
+    <div class="bg-white rounded-xl max-w-lg w-full max-h-[90vh] shadow-2xl scale-in border border-slate-200 flex flex-col">
+        <div class="p-6 border-b border-slate-200">
+             <h3 id="modalTitle" class="text-xl font-bold text-slate-800"></h3>
+        </div>
+        <div class="p-6 overflow-y-auto">
+             <form id="modalForm" class="space-y-4"></form>
+        </div>
+        <div class="flex justify-end space-x-4 p-6 bg-slate-50 rounded-b-xl border-t border-slate-200">
+            <button type="button" onclick="closeModal()" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-all duration-200 transform hover:scale-105">Cancel</button>
+            <button type="submit" id="modalSubmitBtn" form="modalForm" class="px-5 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-all duration-200 transform hover:scale-105 flex items-center justify-center shadow-md">
+                Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed bottom-5 right-5 z-[100] space-y-3"></div>
+
+<script>
+    // Your existing backend-compatible JavaScript from the old code
+    const API_BASE = '/api';
+    let token = localStorage.getItem('adminToken');
+    let currentTab = 'sectors';
+
+    // Mobile sidebar functionality
+    function toggleMobileSidebar() {
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        mobileSidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Prevent body scroll when sidebar is open
+        document.body.style.overflow = mobileSidebar.classList.contains('active') ? 'hidden' : '';
+    }
+
+    function closeMobileSidebar() {
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        mobileSidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Utility functions for loading states
+    function showLoading(button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<div class="loading-spinner"></div> Loading...';
+        button.disabled = true;
+        button.classList.add('btn-loading');
+        return originalText;
+    }
+
+    function hideLoading(button, originalText) {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('btn-loading');
+    }
+
+    function showGlobalLoading() {
+        document.getElementById('globalLoading').classList.remove('hidden');
+    }
+
+    function hideGlobalLoading() {
+        document.getElementById('globalLoading').classList.add('hidden');
+    }
+
+    function showTabLoading(tab) {
+        const loadingElement = document.getElementById(`${tab}Loading`);
+        const listElement = document.getElementById(`${tab}List`);
+        if (loadingElement && listElement) {
+            loadingElement.classList.remove('hidden');
+            listElement.innerHTML = '';
         }
+    }
 
-        function hideLoading(button, originalText) {
-            button.innerHTML = originalText;
-            button.disabled = false;
-            button.classList.remove('btn-loading');
+    function hideTabLoading(tab) {
+        const loadingElement = document.getElementById(`${tab}Loading`);
+        if (loadingElement) {
+            loadingElement.classList.add('hidden');
         }
+    }
 
-        function showGlobalLoading() {
-            document.getElementById('globalLoading').classList.remove('hidden');
+    // Toast notification
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        document.getElementById('toastContainer').appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+
+    // Image preview function
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.value) {
+            preview.src = input.value;
+            preview.classList.remove('hidden');
+        } else {
+            preview.classList.add('hidden');
         }
+    }
 
-        function hideGlobalLoading() {
-            document.getElementById('globalLoading').classList.add('hidden');
-        }
-
-        function showTabLoading(tab) {
-            const loadingElement = document.getElementById(`${tab}Loading`);
-            const listElement = document.getElementById(`${tab}List`);
-            if (loadingElement && listElement) {
-                loadingElement.classList.remove('hidden');
-                listElement.innerHTML = '';
-            }
-        }
-
-        function hideTabLoading(tab) {
-            const loadingElement = document.getElementById(`${tab}Loading`);
-            if (loadingElement) {
-                loadingElement.classList.add('hidden');
-            }
-        }
-
-        // Toast notification
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.textContent = message;
-            document.getElementById('toastContainer').appendChild(toast);
-            setTimeout(() => toast.remove(), 5000);
-        }
-
-        // Image preview function
-        function previewImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            if (input.value) {
-                preview.src = input.value;
-                preview.classList.remove('hidden');
-            } else {
-                preview.classList.add('hidden');
-            }
-        }
-
-        // Drag and drop sorting
-        function initSortable(listId) {
-            const list = document.getElementById(listId);
-            if (!list) return;
-            list.addEventListener('dragstart', (e) => {
-                e.target.closest('.draggable').classList.add('dragging');
-            });
-            list.addEventListener('dragend', (e) => {
-                e.target.closest('.draggable').classList.remove('dragging');
-            });
-            list.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                const afterElement = getDragAfterElement(list, e.clientY);
-                const draggable = document.querySelector('.dragging');
-                if (afterElement == null) {
-                    list.appendChild(draggable);
-                } else {
-                    list.insertBefore(draggable, afterElement);
-                }
-            });
-            list.addEventListener('drop', async (e) => {
-                const items = Array.from(list.children);
-                const type = listId.replace('List', '');
-                const endpoint = getEndpoint(type.slice(0, -1)); // Remove 's' for singular
-                showGlobalLoading();
-                try {
-                    for (let i = 0; i < items.length; i++) {
-                        const id = items[i].dataset.id;
-                        await fetch(`${API_BASE}/${endpoint}/${id}`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ display_order: i + 1 })
-                        });
-                    }
-                    showToast('Order updated successfully!');
-                } catch (error) {
-                    showToast('Error updating order', 'error');
-                } finally {
-                    hideGlobalLoading();
-                }
-            });
-        }
-
-        function getDragAfterElement(container, y) {
-            const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
-        }
-
-        // Search function
-        function searchItems(listId, searchId) {
-            const search = document.getElementById(searchId).value.toLowerCase();
-            const list = document.getElementById(listId);
-            Array.from(list.children).forEach(item => {
-                const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(search) ? '' : 'none';
-            });
-        }
-
-        // Sort function (client-side by display_order)
-        function sortItems(tab) {
-            const list = document.getElementById(`${tab}List`);
-            const items = Array.from(list.children);
-            items.sort((a, b) => (a.dataset.order || 0) - (b.dataset.order || 0));
-            items.forEach(item => list.appendChild(item));
-            showToast('Items sorted by display order');
-        }
-
-        // Check if user is already logged in
-        if (token) {
-            showDashboard();
-        }
-
-        // Login functionality
-        document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+    // Drag and drop sorting
+    function initSortable(listId) {
+        const list = document.getElementById(listId);
+        if (!list) return;
+        list.addEventListener('dragstart', (e) => {
+            e.target.closest('.draggable').classList.add('dragging');
+        });
+        list.addEventListener('dragend', (e) => {
+            e.target.closest('.draggable').classList.remove('dragging');
+        });
+        list.addEventListener('dragover', (e) => {
             e.preventDefault();
-            const button = document.getElementById('loginBtn');
-            const originalText = showLoading(button);
-            
-            const formData = new FormData(e.target);
-            const credentials = {
-                username: formData.get('username'),
-                password: formData.get('password')
-            };
-
-            try {
-                const response = await fetch(`${API_BASE}/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(credentials)
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    token = data.token;
-                    localStorage.setItem('adminToken', token);
-                    showDashboard();
-                } else {
-                    document.getElementById('loginError').textContent = data.error;
-                    document.getElementById('loginError').classList.remove('hidden');
-                }
-            } catch (error) {
-                document.getElementById('loginError').textContent = 'Login failed. Please try again.';
-                document.getElementById('loginError').classList.remove('hidden');
-            } finally {
-                hideLoading(button, originalText);
+            const afterElement = getDragAfterElement(list, e.clientY);
+            const draggable = document.querySelector('.dragging');
+            if (afterElement == null) {
+                list.appendChild(draggable);
+            } else {
+                list.insertBefore(draggable, afterElement);
             }
         });
-
-        // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('adminToken');
-            token = null;
-            document.getElementById('adminDashboard').classList.add('hidden');
-            document.getElementById('loginForm').classList.remove('hidden');
+        list.addEventListener('drop', async (e) => {
+            const items = Array.from(list.children);
+            const type = listId.replace('List', '');
+            const endpoint = getEndpoint(type.slice(0, -1)); // Remove 's' for singular
+            showGlobalLoading();
+            try {
+                for (let i = 0; i < items.length; i++) {
+                    const id = items[i].dataset.id;
+                    await fetch(`${API_BASE}/${endpoint}/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ display_order: i + 1 })
+                    });
+                }
+                showToast('Order updated successfully!');
+            } catch (error) {
+                showToast('Error updating order', 'error');
+            } finally {
+                hideGlobalLoading();
+            }
         });
+    }
 
-        // Tab functionality
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // Search function
+    function searchItems(listId, searchId) {
+        const search = document.getElementById(searchId).value.toLowerCase();
+        const list = document.getElementById(listId);
+        Array.from(list.children).forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(search) ? '' : 'none';
+        });
+    }
+
+    // Sort function (client-side by display_order)
+    function sortItems(tab) {
+        const list = document.getElementById(`${tab}List`);
+        const items = Array.from(list.children);
+        items.sort((a, b) => (a.dataset.order || 0) - (b.dataset.order || 0));
+        items.forEach(item => list.appendChild(item));
+        showToast('Items sorted by display order');
+    }
+
+    // Check if user is already logged in
+    if (token) {
+        showDashboard();
+    }
+
+    // Login functionality
+    document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const button = document.getElementById('loginBtn');
+        const originalText = showLoading(button);
+        
+        const formData = new FormData(e.target);
+        const credentials = {
+            username: formData.get('username'),
+            password: formData.get('password')
+        };
+
+        try {
+            const response = await fetch(`${API_BASE}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(credentials)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                token = data.token;
+                localStorage.setItem('adminToken', token);
+                showDashboard();
+            } else {
+                document.getElementById('loginError').textContent = data.error;
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        } catch (error) {
+            document.getElementById('loginError').textContent = 'Login failed. Please try again.';
+            document.getElementById('loginError').classList.remove('hidden');
+        } finally {
+            hideLoading(button, originalText);
+        }
+    });
+
+    // Logout functionality
+    function handleLogout() {
+        localStorage.removeItem('adminToken');
+        token = null;
+        document.getElementById('adminDashboard').style.display = 'none';
+        document.getElementById('loginContainer').style.display = 'flex';
+        document.body.classList.remove('dashboard-bg');
+        document.body.classList.add('login-bg');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling on login page
+        closeMobileSidebar();
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    document.getElementById('logoutBtnMobile').addEventListener('click', handleLogout);
+
+    // Mobile menu functionality
+    document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileSidebar);
+    document.getElementById('closeMobileMenu').addEventListener('click', closeMobileSidebar);
+    document.getElementById('sidebarOverlay').addEventListener('click', closeMobileSidebar);
+
+    // Tab functionality
+    function setupTabNavigation() {
+        const tabButtons = document.querySelectorAll('.sidebar-link');
+        
+        tabButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 // Update active tab
-                document.querySelectorAll('.tab-btn').forEach(b => {
-                    b.classList.remove('bg-primary-500', 'text-white');
-                    b.classList.add('bg-gray-200', 'text-gray-700');
+                document.querySelectorAll('.sidebar-link').forEach(b => {
+                    b.classList.remove('active');
                 });
-                btn.classList.remove('bg-gray-200', 'text-gray-700');
-                btn.classList.add('bg-primary-500', 'text-white');
+                btn.classList.add('active');
+
+                // Update page title
+                const tabName = btn.dataset.tab;
+                const pageTitle = document.getElementById('pageTitle');
+                const pageTitleDesktop = document.getElementById('pageTitleDesktop');
+                
+                let titleText = '';
+                switch(tabName) {
+                    case 'sectors': titleText = 'Our Sectors'; break;
+                    case 'commitments': titleText = 'Our Commitment'; break;
+                    case 'leadership': titleText = 'Leadership Team'; break;
+                    case 'mining': titleText = 'Mining Vision & Minerals'; break;
+                    case 'agriculture': titleText = 'Agricultural Products'; break;
+                }
+                
+                if (pageTitle) pageTitle.textContent = titleText;
+                if (pageTitleDesktop) pageTitleDesktop.textContent = titleText;
 
                 // Show active tab content
-                const tabName = btn.dataset.tab;
                 document.querySelectorAll('.tab-panel').forEach(panel => {
                     panel.classList.add('hidden');
                 });
@@ -600,565 +871,573 @@
                 // Load tab data
                 currentTab = tabName;
                 loadTabData(tabName);
+                
+                // Close mobile sidebar after selecting a tab
+                closeMobileSidebar();
             });
         });
+    }
 
-        function showDashboard() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('adminDashboard').classList.remove('hidden');
-            loadTabData('sectors');
-        }
+    function showDashboard() {
+        document.getElementById('loginContainer').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'flex';
+        document.body.classList.remove('login-bg');
+        document.body.classList.add('dashboard-bg');
+        document.body.style.overflow = 'auto'; // Allow scrolling in dashboard
+        setupTabNavigation();
+        loadTabData('sectors');
+    }
 
-        async function loadTabData(tabName) {
-            showTabLoading(tabName);
-            
-            try {
-                switch (tabName) {
-                    case 'sectors':
-                        await loadSectors();
-                        initSortable('sectorsList');
-                        document.getElementById('sectorsSearch').addEventListener('input', () => searchItems('sectorsList', 'sectorsSearch'));
-                        break;
-                    case 'commitments':
-                        await loadCommitments();
-                        initSortable('commitmentsList');
-                        document.getElementById('commitmentsSearch').addEventListener('input', () => searchItems('commitmentsList', 'commitmentsSearch'));
-                        break;
-                    case 'leadership':
-                        await loadLeadership();
-                        initSortable('leadershipList');
-                        document.getElementById('leadershipSearch').addEventListener('input', () => searchItems('leadershipList', 'leadershipSearch'));
-                        break;
-                    case 'mining':
-                        await loadMiningVision();
-                        await loadMinerals();
-                        initSortable('mineralsList');
-                        document.getElementById('mineralsSearch').addEventListener('input', () => searchItems('mineralsList', 'mineralsSearch'));
-                        break;
-                    case 'agriculture':
-                        await loadAgriculturalDivision();
-                        await loadAgriculturalProducts();
-                        initSortable('agriculturalProductsList');
-                        document.getElementById('agriculturalProductsSearch').addEventListener('input', () => searchItems('agriculturalProductsList', 'agriculturalProductsSearch'));
-                        break;
-                }
-            } catch (error) {
-                console.error(`Error loading ${tabName}:`, error);
-            } finally {
-                hideTabLoading(tabName);
+    async function loadTabData(tabName) {
+        showTabLoading(tabName);
+        
+        try {
+            switch (tabName) {
+                case 'sectors':
+                    await loadSectors();
+                    initSortable('sectorsList');
+                    document.getElementById('sectorsSearch').addEventListener('input', () => searchItems('sectorsList', 'sectorsSearch'));
+                    break;
+                case 'commitments':
+                    await loadCommitments();
+                    initSortable('commitmentsList');
+                    document.getElementById('commitmentsSearch').addEventListener('input', () => searchItems('commitmentsList', 'commitmentsSearch'));
+                    break;
+                case 'leadership':
+                    await loadLeadership();
+                    initSortable('leadershipList');
+                    document.getElementById('leadershipSearch').addEventListener('input', () => searchItems('leadershipList', 'leadershipSearch'));
+                    break;
+                case 'mining':
+                    await loadMiningVision();
+                    await loadMinerals();
+                    initSortable('mineralsList');
+                    document.getElementById('mineralsSearch').addEventListener('input', () => searchItems('mineralsList', 'mineralsSearch'));
+                    break;
+                case 'agriculture':
+                    await loadAgriculturalDivision();
+                    await loadAgriculturalProducts();
+                    initSortable('agriculturalProductsList');
+                    document.getElementById('agriculturalProductsSearch').addEventListener('input', () => searchItems('agriculturalProductsList', 'agriculturalProductsSearch'));
+                    break;
             }
+        } catch (error) {
+            console.error(`Error loading ${tabName}:`, error);
+        } finally {
+            hideTabLoading(tabName);
         }
+    }
 
-        // Load data functions
-        async function loadSectors() {
-            const response = await fetch(`${API_BASE}/sectors`);
-            const sectors = await response.json();
-            const container = document.getElementById('sectorsList');
-            
-            container.innerHTML = sectors.map(sector => `
-                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${sector.id}" data-order="${sector.display_order || 0}">
-                    <h3 class="font-bold text-xl text-gray-900">${sector.title}</h3>
-                    <p class="text-gray-600 mt-2">${sector.description}</p>
-                    <div class="flex space-x-4 mt-4">
-                        <button onclick="editItem('sector', ${sector.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
-                        <button onclick="deleteItem('sector', ${sector.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
-                    </div>
+    // Load data functions (same as your old code)
+    async function loadSectors() {
+        const response = await fetch(`${API_BASE}/sectors`);
+        const sectors = await response.json();
+        const container = document.getElementById('sectorsList');
+        
+        container.innerHTML = sectors.map(sector => `
+            <div class="draggable bg-white p-4 lg:p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${sector.id}" data-order="${sector.display_order || 0}">
+                <h3 class="font-bold text-lg lg:text-xl text-gray-900">${sector.title}</h3>
+                <p class="text-gray-600 mt-2 text-sm lg:text-base">${sector.description}</p>
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="editItem('sector', ${sector.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium text-sm lg:text-base">Edit</button>
+                    <button onclick="deleteItem('sector', ${sector.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium text-sm lg:text-base">Delete</button>
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
+    }
 
-        async function loadCommitments() {
-            const response = await fetch(`${API_BASE}/commitments`);
-            const commitments = await response.json();
-            const container = document.getElementById('commitmentsList');
-            
-            container.innerHTML = commitments.map(commitment => `
-                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${commitment.id}" data-order="${commitment.display_order || 0}">
-                    <h3 class="font-bold text-xl text-gray-900">${commitment.title}</h3>
-                    <p class="text-gray-600 mt-2">${commitment.description}</p>
-                    <div class="flex space-x-4 mt-4">
-                        <button onclick="editItem('commitment', ${commitment.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
-                        <button onclick="deleteItem('commitment', ${commitment.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
-                    </div>
+    async function loadCommitments() {
+        const response = await fetch(`${API_BASE}/commitments`);
+        const commitments = await response.json();
+        const container = document.getElementById('commitmentsList');
+        
+        container.innerHTML = commitments.map(commitment => `
+            <div class="draggable bg-white p-4 lg:p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${commitment.id}" data-order="${commitment.display_order || 0}">
+                <h3 class="font-bold text-lg lg:text-xl text-gray-900">${commitment.title}</h3>
+                <p class="text-gray-600 mt-2 text-sm lg:text-base">${commitment.description}</p>
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="editItem('commitment', ${commitment.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium text-sm lg:text-base">Edit</button>
+                    <button onclick="deleteItem('commitment', ${commitment.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium text-sm lg:text-base">Delete</button>
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
+    }
 
-        async function loadLeadership() {
-            const response = await fetch(`${API_BASE}/leadership`);
-            const leadership = await response.json();
-            const container = document.getElementById('leadershipList');
-            
-            container.innerHTML = leadership.map(member => `
-                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${member.id}" data-order="${member.display_order || 0}">
-                    <h3 class="font-bold text-xl text-gray-900">${member.name}</h3>
-                    <p class="text-gray-600 mt-1 font-medium">${member.role}</p>
-                    <p class="text-sm text-gray-500 mt-2">${member.description}</p>
-                    <div class="flex space-x-4 mt-4">
-                        <button onclick="editItem('leadership', ${member.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
-                        <button onclick="deleteItem('leadership', ${member.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
-                    </div>
+    async function loadLeadership() {
+        const response = await fetch(`${API_BASE}/leadership`);
+        const leadership = await response.json();
+        const container = document.getElementById('leadershipList');
+        
+        container.innerHTML = leadership.map(member => `
+            <div class="draggable bg-white p-4 lg:p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${member.id}" data-order="${member.display_order || 0}">
+                <h3 class="font-bold text-lg lg:text-xl text-gray-900">${member.name}</h3>
+                <p class="text-gray-600 mt-1 font-medium text-sm lg:text-base">${member.role}</p>
+                <p class="text-sm text-gray-500 mt-2">${member.description}</p>
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="editItem('leadership', ${member.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium text-sm lg:text-base">Edit</button>
+                    <button onclick="deleteItem('leadership', ${member.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium text-sm lg:text-base">Delete</button>
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
+    }
 
-        async function loadMiningVision() {
-            const response = await fetch(`${API_BASE}/mining-vision`);
-            const vision = await response.json();
+    async function loadMiningVision() {
+        const response = await fetch(`${API_BASE}/mining-vision`);
+        const vision = await response.json();
+        
+        if (vision) {
+            document.getElementById('visionTitle').value = vision.title || '';
+            document.getElementById('visionContent').value = vision.content || '';
+            document.getElementById('visionImage').value = vision.image_url || '';
+            previewImage(document.getElementById('visionImage'), 'visionImagePreview');
+        }
+    }
+
+    async function loadMinerals() {
+        const response = await fetch(`${API_BASE}/minerals`);
+        const minerals = await response.json();
+        const container = document.getElementById('mineralsList');
+        
+        container.innerHTML = minerals.map(mineral => `
+            <div class="draggable bg-white p-4 lg:p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${mineral.id}" data-order="${mineral.display_order || 0}">
+                <h3 class="font-bold text-lg lg:text-xl text-gray-900">${mineral.name}</h3>
+                <p class="text-gray-600 mt-2 text-sm lg:text-base">${mineral.description}</p>
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="editItem('mineral', ${mineral.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium text-sm lg:text-base">Edit</button>
+                    <button onclick="deleteItem('mineral', ${mineral.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium text-sm lg:text-base">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function loadAgriculturalProducts() {
+        const response = await fetch(`${API_BASE}/agricultural-products`);
+        const products = await response.json();
+        const container = document.getElementById('agriculturalProductsList');
+        
+        container.innerHTML = products.map(product => `
+            <div class="draggable bg-white p-4 lg:p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${product.id}" data-order="${product.display_order || 0}">
+                <h3 class="font-bold text-lg lg:text-xl text-gray-900">${product.name}</h3>
+                <p class="text-gray-600 mt-2 text-sm lg:text-base">${product.description}</p>
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="editItem('agriculturalProduct', ${product.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium text-sm lg:text-base">Edit</button>
+                    <button onclick="deleteItem('agriculturalProduct', ${product.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium text-sm lg:text-base">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Load agricultural division
+    async function loadAgriculturalDivision() {
+        try {
+            const response = await fetch(`${API_BASE}/agricultural-division`);
+            const division = await response.json();
             
-            if (vision) {
-                document.getElementById('visionTitle').value = vision.title || '';
-                document.getElementById('visionContent').value = vision.content || '';
-                document.getElementById('visionImage').value = vision.image_url || '';
-                previewImage(document.getElementById('visionImage'), 'visionImagePreview');
+            console.log('Agricultural Division Data:', division); // Debug log
+            
+            if (division && division.title) {
+                document.getElementById('divisionTitle').value = division.title || '';
+                document.getElementById('divisionContent').value = division.content || '';
+                document.getElementById('divisionImage').value = division.image_url || '';
+                previewImage(document.getElementById('divisionImage'), 'divisionImagePreview');
+            } else {
+                // Set default values if no data exists
+                document.getElementById('divisionTitle').value = 'Our Agricultural Division';
+                document.getElementById('divisionContent').value = 'Yadah Gemstone\'s agricultural division manages a vast farm of over 200 hectares in the southwest region of Ethiopia. We specialize in the cultivation of a wide range of export-quality cereal crops and spices, contributing to both local food security and international trade.\n\nWe maintain a key collaboration with TBA Trading PLC to enhance our operations and market reach, ensuring our products meet the highest quality standards for both domestic and international markets.';
+                document.getElementById('divisionImage').value = 'img2.jpg';
+                previewImage(document.getElementById('divisionImage'), 'divisionImagePreview');
             }
+        } catch (error) {
+            console.error('Error loading agricultural division:', error);
         }
+    }
 
-        async function loadMinerals() {
-            const response = await fetch(`${API_BASE}/minerals`);
-            const minerals = await response.json();
-            const container = document.getElementById('mineralsList');
-            
-            container.innerHTML = minerals.map(mineral => `
-                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${mineral.id}" data-order="${mineral.display_order || 0}">
-                    <h3 class="font-bold text-xl text-gray-900">${mineral.name}</h3>
-                    <p class="text-gray-600 mt-2">${mineral.description}</p>
-                    <div class="flex space-x-4 mt-4">
-                        <button onclick="editItem('mineral', ${mineral.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
-                        <button onclick="deleteItem('mineral', ${mineral.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
+    // Agricultural division form
+    document.getElementById('agriculturalDivisionFormElement').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const button = document.getElementById('saveDivisionBtn');
+        const originalText = showLoading(button);
+        showGlobalLoading();
+        
+        const formData = new FormData(e.target);
+        const data = {
+            title: formData.get('title'),
+            content: formData.get('content'),
+            image_url: formData.get('image_url')
+        };
 
-        async function loadAgriculturalProducts() {
-            const response = await fetch(`${API_BASE}/agricultural-products`);
-            const products = await response.json();
-            const container = document.getElementById('agriculturalProductsList');
-            
-            container.innerHTML = products.map(product => `
-                <div class="draggable bg-white p-6 rounded-xl shadow-md border border-gray-200 fade-in hover:shadow-lg transition-all duration-200" draggable="true" data-id="${product.id}" data-order="${product.display_order || 0}">
-                    <h3 class="font-bold text-xl text-gray-900">${product.name}</h3>
-                    <p class="text-gray-600 mt-2">${product.description}</p>
-                    <div class="flex space-x-4 mt-4">
-                        <button onclick="editItem('agriculturalProduct', ${product.id})" class="text-blue-500 hover:text-blue-700 transition-colors font-medium">Edit</button>
-                        <button onclick="deleteItem('agriculturalProduct', ${product.id})" class="text-red-500 hover:text-red-700 transition-colors font-medium">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
+        try {
+            const response = await fetch(`${API_BASE}/agricultural-division`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
 
-        // Load agricultural division
-        async function loadAgriculturalDivision() {
-            try {
-                const response = await fetch(`${API_BASE}/agricultural-division`);
-                const division = await response.json();
-                
-                console.log('Agricultural Division Data:', division); // Debug log
-                
-                if (division && division.title) {
-                    document.getElementById('divisionTitle').value = division.title || '';
-                    document.getElementById('divisionContent').value = division.content || '';
-                    document.getElementById('divisionImage').value = division.image_url || '';
-                    previewImage(document.getElementById('divisionImage'), 'divisionImagePreview');
-                } else {
-                    // Set default values if no data exists
-                    document.getElementById('divisionTitle').value = 'Our Agricultural Division';
-                    document.getElementById('divisionContent').value = 'Yadah Gemstone\'s agricultural division manages a vast farm of over 200 hectares in the southwest region of Ethiopia. We specialize in the cultivation of a wide range of export-quality cereal crops and spices, contributing to both local food security and international trade.\n\nWe maintain a key collaboration with TBA Trading PLC to enhance our operations and market reach, ensuring our products meet the highest quality standards for both domestic and international markets.';
-                    document.getElementById('divisionImage').value = 'img2.jpg';
-                    previewImage(document.getElementById('divisionImage'), 'divisionImagePreview');
-                }
-            } catch (error) {
-                console.error('Error loading agricultural division:', error);
-            }
-        }
-
-        // Agricultural division form
-        document.getElementById('agriculturalDivisionFormElement').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const button = document.getElementById('saveDivisionBtn');
-            const originalText = showLoading(button);
-            showGlobalLoading();
-            
-            const formData = new FormData(e.target);
-            const data = {
-                title: formData.get('title'),
-                content: formData.get('content'),
-                image_url: formData.get('image_url')
-            };
-
-            try {
-                const response = await fetch(`${API_BASE}/agricultural-division`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    showToast('Agricultural division saved successfully!');
-                } else {
-                    showToast('Error saving agricultural division', 'error');
-                }
-            } catch (error) {
-                console.error('Error saving agricultural division:', error);
+            if (response.ok) {
+                showToast('Agricultural division saved successfully!');
+            } else {
                 showToast('Error saving agricultural division', 'error');
-            } finally {
-                hideLoading(button, originalText);
-                hideGlobalLoading();
             }
-        });
+        } catch (error) {
+            console.error('Error saving agricultural division:', error);
+            showToast('Error saving agricultural division', 'error');
+        } finally {
+            hideLoading(button, originalText);
+            hideGlobalLoading();
+        }
+    });
 
-        // Mining vision form
-        document.getElementById('miningVisionFormElement').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const button = document.getElementById('saveVisionBtn');
-            const originalText = showLoading(button);
-            showGlobalLoading();
-            
-            const formData = new FormData(e.target);
-            const data = {
-                title: formData.get('title'),
-                content: formData.get('content'),
-                image_url: formData.get('image_url')
-            };
+    // Mining vision form
+    document.getElementById('miningVisionFormElement').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const button = document.getElementById('saveVisionBtn');
+        const originalText = showLoading(button);
+        showGlobalLoading();
+        
+        const formData = new FormData(e.target);
+        const data = {
+            title: formData.get('title'),
+            content: formData.get('content'),
+            image_url: formData.get('image_url')
+        };
 
-            try {
-                const response = await fetch(`${API_BASE}/mining-vision`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(data)
-                });
+        try {
+            const response = await fetch(`${API_BASE}/mining-vision`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
 
-                if (response.ok) {
-                    showToast('Mining vision saved successfully!');
+            if (response.ok) {
+                showToast('Mining vision saved successfully!');
                 } else {
-                    showToast('Error saving mining vision', 'error');
-                }
-            } catch (error) {
                 showToast('Error saving mining vision', 'error');
-            } finally {
-                hideLoading(button, originalText);
-                hideGlobalLoading();
-            }
-        });
-
-        // Modal functions
-        function showAddForm(type) {
-            const forms = {
-                sector: {
-                    title: 'Add Sector',
-                    fields: [
-                        { name: 'title', label: 'Title', type: 'text', required: true },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true },
-                        { name: 'image_url', label: 'Image URL', type: 'text', required: true },
-                        { name: 'link_url', label: 'Link URL', type: 'text', required: true },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
-                    ]
-                },
-                commitment: {
-                    title: 'Add Commitment',
-                    fields: [
-                        { name: 'title', label: 'Title', type: 'text', required: true },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true },
-                        { name: 'image_url', label: 'Image URL', type: 'text', required: true },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
-                    ]
-                },
-                leadership: {
-                    title: 'Add Leadership Member',
-                    fields: [
-                        { name: 'name', label: 'Name', type: 'text', required: true },
-                        { name: 'role', label: 'Role', type: 'text', required: true },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true },
-                        { name: 'more_content', label: 'More Content', type: 'textarea', required: false },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
-                    ]
-                },
-                mineral: {
-                    title: 'Add Mineral',
-                    fields: [
-                        { name: 'name', label: 'Name', type: 'text', required: true },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true },
-                        { name: 'image_url', label: 'Image URL', type: 'text', required: true },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
-                    ]
-                },
-                agriculturalProduct: {
-                    title: 'Add Agricultural Product',
-                    fields: [
-                        { name: 'name', label: 'Name', type: 'text', required: true },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true },
-                        { name: 'image_url', label: 'Image URL', type: 'text', required: true },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false }
-                    ]
                 }
-            };
+        } catch (error) {
+            showToast('Error saving mining vision', 'error');
+        } finally {
+            hideLoading(button, originalText);
+            hideGlobalLoading();
+        }
+    });
 
-            const formConfig = forms[type];
-            document.getElementById('modalTitle').textContent = formConfig.title;
-            
-            const formHTML = formConfig.fields.map(field => `
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-gray-700">${field.label}</label>
-                    ${field.type === 'textarea' ? 
-                        `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" rows="3"></textarea>` :
-                        `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" value="${field.type === 'number' ? '0' : ''}">`
-                    }
-                    ${field.name === 'image_url' ? `<img class="image-preview hidden mt-2" src="" alt="Preview">` : ''}
-                </div>
-            `).join('');
-
-            const modalForm = document.getElementById('modalForm');
-            modalForm.innerHTML = formHTML;
-            modalForm.onsubmit = (e) => handleFormSubmit(e, type);
-            // Add preview listeners
-            const imageInput = modalForm.querySelector('input[name="image_url"]');
-            if (imageInput) {
-                imageInput.addEventListener('input', (e) => {
-                    const preview = e.target.nextElementSibling;
-                    if (preview && preview.tagName === 'IMG') {
-                        previewImage(e.target, preview.id || 'tempPreview'); // Use class instead of id
-                        preview.id = 'tempPreview'; // Temp id
-                    }
-                });
+    // Modal functions
+    function showAddForm(type) {
+        const forms = {
+            sector: {
+                title: 'Add Sector',
+                fields: [
+                    { name: 'title', label: 'Title', type: 'text', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true },
+                    { name: 'image_url', label: 'Image URL', type: 'text', required: true },
+                    { name: 'link_url', label: 'Link URL', type: 'text', required: true },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                ]
+            },
+            commitment: {
+                title: 'Add Commitment',
+                fields: [
+                    { name: 'title', label: 'Title', type: 'text', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true },
+                    { name: 'image_url', label: 'Image URL', type: 'text', required: true },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                ]
+            },
+            leadership: {
+                title: 'Add Leadership Member',
+                fields: [
+                    { name: 'name', label: 'Name', type: 'text', required: true },
+                    { name: 'role', label: 'Role', type: 'text', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true },
+                    { name: 'more_content', label: 'More Content', type: 'textarea', required: false },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                ]
+            },
+            mineral: {
+                title: 'Add Mineral',
+                fields: [
+                    { name: 'name', label: 'Name', type: 'text', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true },
+                    { name: 'image_url', label: 'Image URL', type: 'text', required: true },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                ]
+            },
+            agriculturalProduct: {
+                title: 'Add Agricultural Product',
+                fields: [
+                    { name: 'name', label: 'Name', type: 'text', required: true },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true },
+                    { name: 'image_url', label: 'Image URL', type: 'text', required: true },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false }
+                ]
             }
-            document.getElementById('modal').classList.remove('hidden');
+        };
+
+        const formConfig = forms[type];
+        document.getElementById('modalTitle').textContent = formConfig.title;
+        
+        const formHTML = formConfig.fields.map(field => `
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-gray-700">${field.label}</label>
+                ${field.type === 'textarea' ? 
+                    `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" rows="3"></textarea>` :
+                    `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" value="${field.type === 'number' ? '0' : ''}">`
+                }
+                ${field.name === 'image_url' ? `<img class="image-preview hidden mt-2" src="" alt="Preview">` : ''}
+            </div>
+        `).join('');
+
+        const modalForm = document.getElementById('modalForm');
+        modalForm.innerHTML = formHTML;
+        modalForm.onsubmit = (e) => handleFormSubmit(e, type);
+        // Add preview listeners
+        const imageInput = modalForm.querySelector('input[name="image_url"]');
+        if (imageInput) {
+            imageInput.addEventListener('input', (e) => {
+                const preview = e.target.nextElementSibling;
+                if (preview && preview.tagName === 'IMG') {
+                    previewImage(e.target, preview.id || 'tempPreview'); // Use class instead of id
+                    preview.id = 'tempPreview'; // Temp id
+                }
+            });
+        }
+        document.getElementById('modal').classList.remove('hidden');
+    }
+
+    async function handleFormSubmit(e, type) {
+        e.preventDefault();
+        const button = document.getElementById('modalSubmitBtn');
+        const originalText = showLoading(button);
+        showGlobalLoading();
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        // Convert display_order to number
+        if (data.display_order) {
+            data.display_order = parseInt(data.display_order);
         }
 
-        async function handleFormSubmit(e, type) {
-            e.preventDefault();
-            const button = document.getElementById('modalSubmitBtn');
-            const originalText = showLoading(button);
-            showGlobalLoading();
+        try {
+            const response = await fetch(`${API_BASE}/${getEndpoint(type)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
 
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-
-            // Convert display_order to number
-            if (data.display_order) {
-                data.display_order = parseInt(data.display_order);
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/${getEndpoint(type)}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    closeModal();
-                    loadTabData(getTabName(type));
-                    showToast('Item added successfully!');
-                } else {
-                    showToast('Error adding item', 'error');
-                }
-            } catch (error) {
+            if (response.ok) {
+                closeModal();
+                loadTabData(getTabName(type));
+                showToast('Item added successfully!');
+            } else {
                 showToast('Error adding item', 'error');
-            } finally {
-                hideLoading(button, originalText);
-                hideGlobalLoading();
             }
+        } catch (error) {
+            showToast('Error adding item', 'error');
+        } finally {
+            hideLoading(button, originalText);
+            hideGlobalLoading();
         }
+    }
 
-        function getEndpoint(type) {
-            const endpoints = {
-                sector: 'sectors',
-                commitment: 'commitments',
-                leadership: 'leadership',
-                mineral: 'minerals',
-                agriculturalProduct: 'agricultural-products'
-            };
-            return endpoints[type];
-        }
+    function getEndpoint(type) {
+        const endpoints = {
+            sector: 'sectors',
+            commitment: 'commitments',
+            leadership: 'leadership',
+            mineral: 'minerals',
+            agriculturalProduct: 'agricultural-products'
+        };
+        return endpoints[type];
+    }
 
-        function getTabName(type) {
-            const tabs = {
-                sector: 'sectors',
-                commitment: 'commitments',
-                leadership: 'leadership',
-                mineral: 'mining',
-                agriculturalProduct: 'agriculture'
-            };
-            return tabs[type];
-        }
+    function getTabName(type) {
+        const tabs = {
+            sector: 'sectors',
+            commitment: 'commitments',
+            leadership: 'leadership',
+            mineral: 'mining',
+            agriculturalProduct: 'agriculture'
+        };
+        return tabs[type];
+    }
 
-        function closeModal() {
-            document.getElementById('modal').classList.add('hidden');
-        }
+    function closeModal() {
+        document.getElementById('modal').classList.add('hidden');
+    }
 
-        async function deleteItem(type, id) {
-            if (!confirm('Are you sure you want to delete this item?')) return;
+    async function deleteItem(type, id) {
+        if (!confirm('Are you sure you want to delete this item?')) return;
 
-            showGlobalLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    loadTabData(getTabName(type));
-                    showToast('Item deleted successfully!');
-                } else {
-                    showToast('Error deleting item', 'error');
+        showGlobalLoading();
+        
+        try {
+            const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            } catch (error) {
+            });
+
+            if (response.ok) {
+                loadTabData(getTabName(type));
+                showToast('Item deleted successfully!');
+            } else {
                 showToast('Error deleting item', 'error');
-            } finally {
-                hideGlobalLoading();
-            }
-        }
-
-        // Edit functionality
-        async function editItem(type, id) {
-            showGlobalLoading();
-            
-            try {
-                const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`);
-                const item = await response.json();
-                showEditForm(type, id, item);
-            } catch (error) {
-                console.error('Error fetching item for edit:', error);
-                showToast('Error loading item for editing', 'error');
-            } finally {
-                hideGlobalLoading();
-            }
-        }
-
-        function showEditForm(type, id, item) {
-            const forms = {
-                sector: {
-                    title: 'Edit Sector',
-                    fields: [
-                        { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                        { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
-                        { name: 'link_url', label: 'Link URL', type: 'text', required: true, value: item.link_url },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-                    ]
-                },
-                commitment: {
-                    title: 'Edit Commitment',
-                    fields: [
-                        { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                        { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-                    ]
-                },
-                leadership: {
-                    title: 'Edit Leadership Member',
-                    fields: [
-                        { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
-                        { name: 'role', label: 'Role', type: 'text', required: true, value: item.role },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                        { name: 'more_content', label: 'More Content', type: 'textarea', required: false, value: item.more_content || '' },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-                    ]
-                },
-                mineral: {
-                    title: 'Edit Mineral',
-                    fields: [
-                        { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                        { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-                    ]
-                },
-                agriculturalProduct: {
-                    title: 'Edit Agricultural Product',
-                    fields: [
-                        { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
-                        { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
-                        { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
-                        { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
-                    ]
                 }
-            };
+        } catch (error) {
+            showToast('Error deleting item', 'error');
+        } finally {
+            hideGlobalLoading();
+        }
+    }
 
-            const formConfig = forms[type];
-            document.getElementById('modalTitle').textContent = formConfig.title;
-            
-            const formHTML = formConfig.fields.map(field => `
-                <div>
-                    <label class="block text-sm font-semibold mb-2 text-gray-700">${field.label}</label>
-                    ${field.type === 'textarea' ? 
-                        `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" rows="3">${field.value || ''}</textarea>` :
-                        `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" value="${field.value || ''}">`
-                    }
-                    ${field.name === 'image_url' ? `<img class="image-preview mt-2 ${field.value ? '' : 'hidden'}" src="${field.value || ''}" alt="Preview">` : ''}
-                </div>
-            `).join('');
+    // Edit functionality
+    async function editItem(type, id) {
+        showGlobalLoading();
+        
+        try {
+            const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`);
+            const item = await response.json();
+            showEditForm(type, id, item);
+        } catch (error) {
+            console.error('Error fetching item for edit:', error);
+            showToast('Error loading item for editing', 'error');
+        } finally {
+            hideGlobalLoading();
+        }
+    }
 
-            const modalForm = document.getElementById('modalForm');
-            modalForm.innerHTML = formHTML;
-            modalForm.onsubmit = (e) => handleEditSubmit(e, type, id);
-            // Add preview listeners
-            const imageInput = modalForm.querySelector('input[name="image_url"]');
-            if (imageInput) {
-                imageInput.addEventListener('input', (e) => {
-                    const preview = e.target.nextElementSibling;
-                    if (preview && preview.tagName === 'IMG') {
-                        previewImage(e.target, preview.id || 'tempPreview');
-                        preview.id = 'tempPreview';
-                    }
-                });
+    function showEditForm(type, id, item) {
+        const forms = {
+            sector: {
+                title: 'Edit Sector',
+                fields: [
+                    { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                    { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                    { name: 'link_url', label: 'Link URL', type: 'text', required: true, value: item.link_url },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                ]
+            },
+            commitment: {
+                title: 'Edit Commitment',
+                fields: [
+                    { name: 'title', label: 'Title', type: 'text', required: true, value: item.title },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                    { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                ]
+            },
+            leadership: {
+                title: 'Edit Leadership Member',
+                fields: [
+                    { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                    { name: 'role', label: 'Role', type: 'text', required: true, value: item.role },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                    { name: 'more_content', label: 'More Content', type: 'textarea', required: false, value: item.more_content || '' },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                ]
+            },
+            mineral: {
+                title: 'Edit Mineral',
+                fields: [
+                    { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                    { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                ]
+            },
+            agriculturalProduct: {
+                title: 'Edit Agricultural Product',
+                fields: [
+                    { name: 'name', label: 'Name', type: 'text', required: true, value: item.name },
+                    { name: 'description', label: 'Description', type: 'textarea', required: true, value: item.description },
+                    { name: 'image_url', label: 'Image URL', type: 'text', required: true, value: item.image_url },
+                    { name: 'display_order', label: 'Display Order', type: 'number', required: false, value: item.display_order || 0 }
+                ]
             }
-            document.getElementById('modal').classList.remove('hidden');
+        };
+
+        const formConfig = forms[type];
+        document.getElementById('modalTitle').textContent = formConfig.title;
+        
+        const formHTML = formConfig.fields.map(field => `
+            <div>
+                <label class="block text-sm font-semibold mb-2 text-gray-700">${field.label}</label>
+                ${field.type === 'textarea' ? 
+                    `<textarea name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" rows="3">${field.value || ''}</textarea>` :
+                    `<input type="${field.type}" name="${field.name}" ${field.required ? 'required' : ''} class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200" value="${field.value || ''}">`
+                }
+                ${field.name === 'image_url' ? `<img class="image-preview mt-2 ${field.value ? '' : 'hidden'}" src="${field.value || ''}" alt="Preview">` : ''}
+            </div>
+        `).join('');
+
+        const modalForm = document.getElementById('modalForm');
+        modalForm.innerHTML = formHTML;
+        modalForm.onsubmit = (e) => handleEditSubmit(e, type, id);
+        // Add preview listeners
+        const imageInput = modalForm.querySelector('input[name="image_url"]');
+        if (imageInput) {
+            imageInput.addEventListener('input', (e) => {
+                const preview = e.target.nextElementSibling;
+                if (preview && preview.tagName === 'IMG') {
+                    previewImage(e.target, preview.id || 'tempPreview');
+                    preview.id = 'tempPreview';
+                }
+            });
+        }
+        document.getElementById('modal').classList.remove('hidden');
+    }
+
+    async function handleEditSubmit(e, type, id) {
+        e.preventDefault();
+        const button = document.getElementById('modalSubmitBtn');
+        const originalText = showLoading(button);
+        showGlobalLoading();
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        // Convert display_order to number
+        if (data.display_order) {
+            data.display_order = parseInt(data.display_order);
         }
 
-        async function handleEditSubmit(e, type, id) {
-            e.preventDefault();
-            const button = document.getElementById('modalSubmitBtn');
-            const originalText = showLoading(button);
-            showGlobalLoading();
+        try {
+            const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
 
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-
-            // Convert display_order to number
-            if (data.display_order) {
-                data.display_order = parseInt(data.display_order);
-            }
-
-            try {
-                const response = await fetch(`${API_BASE}/${getEndpoint(type)}/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    closeModal();
-                    loadTabData(getTabName(type));
-                    showToast('Item updated successfully!');
-                } else {
-                    showToast('Error updating item', 'error');
-                }
-            } catch (error) {
-                console.error('Error updating item:', error);
+            if (response.ok) {
+                closeModal();
+                loadTabData(getTabName(type));
+                showToast('Item updated successfully!');
+            } else {
                 showToast('Error updating item', 'error');
-            } finally {
-                hideLoading(button, originalText);
-                hideGlobalLoading();
-            }
+                }
+        } catch (error) {
+            console.error('Error updating item:', error);
+            showToast('Error updating item', 'error');
+        } finally {
+            hideLoading(button, originalText);
+            hideGlobalLoading();
         }
-    </script>
+    }
+</script>
 </body>
 </html>

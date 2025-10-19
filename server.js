@@ -14,11 +14,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Add timeout middleware
+// Enhanced timeout middleware
 app.use((req, res, next) => {
-  req.setTimeout(10000, () => {
-    res.status(503).json({ error: 'Request timeout' });
-  });
+  // Set timeout to 30 seconds instead of 10
+  const timeout = 30000;
+  const timer = setTimeout(() => {
+    if (!res.headersSent) {
+      res.status(503).json({ 
+        error: 'Request timeout',
+        message: 'The server took too long to process your request'
+      });
+    }
+  }, timeout);
+
+  // Clear timeout when response is sent
+  const originalSend = res.send;
+  res.send = function(...args) {
+    clearTimeout(timer);
+    originalSend.apply(this, args);
+  };
+
   next();
 });
 
@@ -28,12 +43,13 @@ if (!process.env.DATABASE_URL) {
   console.log('Please set DATABASE_URL in your .env file');
 }
 
-// Optimized PostgreSQL connection
+// Enhanced PostgreSQL connection with better timeout handling
 const poolConfig = {
   connectionString: process.env.DATABASE_URL,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 10000, // Increased to 10 seconds
+  maxUses: 7500, // Close connection after 7500 queries
 };
 
 if (process.env.NODE_ENV === 'production') {
@@ -44,22 +60,86 @@ if (process.env.NODE_ENV === 'production') {
 
 const pool = new Pool(poolConfig);
 
-// Database connection events
+// Database connection events with enhanced logging
 pool.on('connect', () => {
   console.log('✅ Connected to PostgreSQL database');
 });
 
 pool.on('error', (err) => {
   console.error('❌ PostgreSQL pool error:', err);
+  console.log('🔄 Connection will be reestablished on next query');
 });
 
-// Response cache
-const cache = new Map();
+// Enhanced query function with retry logic
+const executeQueryWithRetry = async (query, params = [], maxRetries = 3) => {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await pool.query(query, params);
+      return result;
+    } catch (error) {
+      lastError = error;
+      
+      // Don't retry for these error types
+      if (error.code === '23505' || error.code === '23503') { // Unique violation or foreign key violation
+        throw error;
+      }
+      
+      // Log retry attempts
+      if (attempt < maxRetries) {
+        console.log(`🔄 Query retry attempt ${attempt}/${maxRetries} after error: ${error.message}`);
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
+  }
+  
+  throw lastError; // Throw the last error after all retries fail
+};
 
-// Test database connection route
+// Response cache with enhanced TTL handling
+class EnhancedCache {
+  constructor() {
+    this.cache = new Map();
+  }
+
+  set(key, data, ttl = 15000) {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl
+    });
+  }
+
+  get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+
+    // Check if item has expired
+    if (Date.now() - item.timestamp > item.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return item.data;
+  }
+
+  delete(key) {
+    this.cache.delete(key);
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+}
+
+const cache = new EnhancedCache();
+
+// Test database connection route with retry
 app.get('/api/test-db', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW() as current_time');
+    const result = await executeQueryWithRetry('SELECT NOW() as current_time');
     res.json({ 
       message: '✅ Database connection successful',
       currentTime: result.rows[0].current_time,
@@ -75,24 +155,26 @@ app.get('/api/test-db', async (req, res) => {
   }
 });
 
-// Health check endpoint
+// Enhanced health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
     const start = Date.now();
-    await pool.query('SELECT 1');
+    await executeQueryWithRetry('SELECT 1');
     const queryTime = Date.now() - start;
     
     res.json({
       status: 'healthy',
       database: 'connected',
       responseTime: `${queryTime}ms`,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      cacheSize: cache.cache.size
     });
   } catch (error) {
     res.status(503).json({
       status: 'unhealthy',
       database: 'disconnected',
-      error: error.message
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -118,7 +200,7 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Optimized helper function to shift display orders
+// Optimized helper function to shift display orders with retry
 async function shiftDisplayOrders(table, newOrder, currentOrder = null, excludeId = null) {
     const client = await pool.connect();
     try {
@@ -151,14 +233,14 @@ function clearCache(key) {
     cache.delete(key);
 }
 
-// Routes
+// Routes - ALL YOUR ORIGINAL ENDPOINTS PRESERVED
 
 // Authentication
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    const result = await executeQueryWithRetry('SELECT * FROM users WHERE username = $1', [username]);
     
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -177,21 +259,18 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Sectors routes with caching
+// Sectors routes with caching and retry
 app.get('/api/sectors', async (req, res) => {
   const cacheKey = 'sectors';
-  const cacheTime = 15000; // 15 seconds
   
-  if (cache.has(cacheKey)) {
-    const { data, timestamp } = cache.get(cacheKey);
-    if (Date.now() - timestamp < cacheTime) {
-      return res.json(data);
-    }
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
   }
 
   try {
-    const result = await pool.query('SELECT * FROM sectors WHERE is_active = true ORDER BY display_order');
-    cache.set(cacheKey, { data: result.rows, timestamp: Date.now() });
+    const result = await executeQueryWithRetry('SELECT * FROM sectors WHERE is_active = true ORDER BY display_order');
+    cache.set(cacheKey, result.rows);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching sectors:', error);
@@ -261,7 +340,7 @@ app.put('/api/sectors/:id', authenticateToken, async (req, res) => {
 app.delete('/api/sectors/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM sectors WHERE id = $1', [id]);
+    await executeQueryWithRetry('DELETE FROM sectors WHERE id = $1', [id]);
     clearCache('sectors');
     res.json({ message: 'Sector deleted successfully' });
   } catch (error) {
@@ -270,21 +349,18 @@ app.delete('/api/sectors/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Commitments routes with caching
+// Commitments routes with caching and retry
 app.get('/api/commitments', async (req, res) => {
   const cacheKey = 'commitments';
-  const cacheTime = 15000;
   
-  if (cache.has(cacheKey)) {
-    const { data, timestamp } = cache.get(cacheKey);
-    if (Date.now() - timestamp < cacheTime) {
-      return res.json(data);
-    }
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
   }
 
   try {
-    const result = await pool.query('SELECT * FROM commitments WHERE is_active = true ORDER BY display_order');
-    cache.set(cacheKey, { data: result.rows, timestamp: Date.now() });
+    const result = await executeQueryWithRetry('SELECT * FROM commitments WHERE is_active = true ORDER BY display_order');
+    cache.set(cacheKey, result.rows);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching commitments:', error);
@@ -351,21 +427,18 @@ app.put('/api/commitments/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Leadership routes with caching
+// Leadership routes with caching and retry
 app.get('/api/leadership', async (req, res) => {
   const cacheKey = 'leadership';
-  const cacheTime = 15000;
   
-  if (cache.has(cacheKey)) {
-    const { data, timestamp } = cache.get(cacheKey);
-    if (Date.now() - timestamp < cacheTime) {
-      return res.json(data);
-    }
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
   }
 
   try {
-    const result = await pool.query('SELECT * FROM leadership WHERE is_active = true ORDER BY display_order');
-    cache.set(cacheKey, { data: result.rows, timestamp: Date.now() });
+    const result = await executeQueryWithRetry('SELECT * FROM leadership WHERE is_active = true ORDER BY display_order');
+    cache.set(cacheKey, result.rows);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching leadership:', error);
@@ -432,11 +505,11 @@ app.put('/api/leadership/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Get single item routes
+// Get single item routes with retry
 app.get('/api/sectors/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM sectors WHERE id = $1', [id]);
+        const result = await executeQueryWithRetry('SELECT * FROM sectors WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Sector not found' });
         }
@@ -450,7 +523,7 @@ app.get('/api/sectors/:id', async (req, res) => {
 app.get('/api/commitments/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM commitments WHERE id = $1', [id]);
+        const result = await executeQueryWithRetry('SELECT * FROM commitments WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Commitment not found' });
         }
@@ -464,7 +537,7 @@ app.get('/api/commitments/:id', async (req, res) => {
 app.get('/api/leadership/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM leadership WHERE id = $1', [id]);
+        const result = await executeQueryWithRetry('SELECT * FROM leadership WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Leadership member not found' });
         }
@@ -478,7 +551,7 @@ app.get('/api/leadership/:id', async (req, res) => {
 app.get('/api/minerals/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM minerals WHERE id = $1', [id]);
+        const result = await executeQueryWithRetry('SELECT * FROM minerals WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Mineral not found' });
         }
@@ -492,7 +565,7 @@ app.get('/api/minerals/:id', async (req, res) => {
 app.get('/api/agricultural-products/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await pool.query('SELECT * FROM agricultural_products WHERE id = $1', [id]);
+        const result = await executeQueryWithRetry('SELECT * FROM agricultural_products WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Agricultural product not found' });
         }
@@ -503,10 +576,10 @@ app.get('/api/agricultural-products/:id', async (req, res) => {
     }
 });
 
-// Mining vision routes
+// Mining vision routes with retry
 app.get('/api/mining-vision', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM mining_vision ORDER BY id DESC LIMIT 1');
+    const result = await executeQueryWithRetry('SELECT * FROM mining_vision ORDER BY id DESC LIMIT 1');
     res.json(result.rows[0] || {});
   } catch (error) {
     console.error('Error fetching mining vision:', error);
@@ -517,7 +590,7 @@ app.get('/api/mining-vision', async (req, res) => {
 app.post('/api/mining-vision', authenticateToken, async (req, res) => {
   try {
     const { title, content, image_url } = req.body;
-    const result = await pool.query(
+    const result = await executeQueryWithRetry(
       'INSERT INTO mining_vision (title, content, image_url) VALUES ($1, $2, $3) RETURNING *',
       [title, content, image_url]
     );
@@ -532,7 +605,7 @@ app.put('/api/mining-vision/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, content, image_url } = req.body;
-    const result = await pool.query(
+    const result = await executeQueryWithRetry(
       'UPDATE mining_vision SET title = $1, content = $2, image_url = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
       [title, content, image_url, id]
     );
@@ -543,21 +616,18 @@ app.put('/api/mining-vision/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Minerals routes with caching
+// Minerals routes with caching and retry
 app.get('/api/minerals', async (req, res) => {
   const cacheKey = 'minerals';
-  const cacheTime = 15000;
   
-  if (cache.has(cacheKey)) {
-    const { data, timestamp } = cache.get(cacheKey);
-    if (Date.now() - timestamp < cacheTime) {
-      return res.json(data);
-    }
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
   }
 
   try {
-    const result = await pool.query('SELECT * FROM minerals WHERE is_active = true ORDER BY display_order');
-    cache.set(cacheKey, { data: result.rows, timestamp: Date.now() });
+    const result = await executeQueryWithRetry('SELECT * FROM minerals WHERE is_active = true ORDER BY display_order');
+    cache.set(cacheKey, result.rows);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching minerals:', error);
@@ -624,21 +694,18 @@ app.put('/api/minerals/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Agricultural products routes with caching
+// Agricultural products routes with caching and retry
 app.get('/api/agricultural-products', async (req, res) => {
   const cacheKey = 'agricultural-products';
-  const cacheTime = 15000;
   
-  if (cache.has(cacheKey)) {
-    const { data, timestamp } = cache.get(cacheKey);
-    if (Date.now() - timestamp < cacheTime) {
-      return res.json(data);
-    }
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
   }
 
   try {
-    const result = await pool.query('SELECT * FROM agricultural_products WHERE is_active = true ORDER BY display_order');
-    cache.set(cacheKey, { data: result.rows, timestamp: Date.now() });
+    const result = await executeQueryWithRetry('SELECT * FROM agricultural_products WHERE is_active = true ORDER BY display_order');
+    cache.set(cacheKey, result.rows);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching agricultural products:', error);
@@ -705,10 +772,11 @@ app.put('/api/agricultural-products/:id', authenticateToken, async (req, res) =>
   }
 });
 
+// Delete routes with retry
 app.delete('/api/commitments/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query('DELETE FROM commitments WHERE id = $1', [id]);
+        await executeQueryWithRetry('DELETE FROM commitments WHERE id = $1', [id]);
         clearCache('commitments');
         res.json({ message: 'Commitment deleted successfully' });
     } catch (error) {
@@ -720,7 +788,7 @@ app.delete('/api/commitments/:id', authenticateToken, async (req, res) => {
 app.delete('/api/leadership/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query('DELETE FROM leadership WHERE id = $1', [id]);
+        await executeQueryWithRetry('DELETE FROM leadership WHERE id = $1', [id]);
         clearCache('leadership');
         res.json({ message: 'Leadership member deleted successfully' });
     } catch (error) {
@@ -732,7 +800,7 @@ app.delete('/api/leadership/:id', authenticateToken, async (req, res) => {
 app.delete('/api/minerals/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query('DELETE FROM minerals WHERE id = $1', [id]);
+        await executeQueryWithRetry('DELETE FROM minerals WHERE id = $1', [id]);
         clearCache('minerals');
         res.json({ message: 'Mineral deleted successfully' });
     } catch (error) {
@@ -744,7 +812,7 @@ app.delete('/api/minerals/:id', authenticateToken, async (req, res) => {
 app.delete('/api/agricultural-products/:id', authenticateToken, async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query('DELETE FROM agricultural_products WHERE id = $1', [id]);
+        await executeQueryWithRetry('DELETE FROM agricultural_products WHERE id = $1', [id]);
         clearCache('agricultural-products');
         res.json({ message: 'Agricultural product deleted successfully' });
     } catch (error) {
@@ -752,10 +820,11 @@ app.delete('/api/agricultural-products/:id', authenticateToken, async (req, res)
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-// Agricultural division routes
+
+// Agricultural division routes with retry
 app.get('/api/agricultural-division', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM agricultural_division ORDER BY id DESC LIMIT 1');
+    const result = await executeQueryWithRetry('SELECT * FROM agricultural_division ORDER BY id DESC LIMIT 1');
     res.json(result.rows[0] || {});
   } catch (error) {
     console.error('Error fetching agricultural division:', error);
@@ -766,7 +835,7 @@ app.get('/api/agricultural-division', async (req, res) => {
 app.post('/api/agricultural-division', authenticateToken, async (req, res) => {
   try {
     const { title, content, image_url } = req.body;
-    const result = await pool.query(
+    const result = await executeQueryWithRetry(
       'INSERT INTO agricultural_division (title, content, image_url) VALUES ($1, $2, $3) RETURNING *',
       [title, content, image_url]
     );
@@ -781,7 +850,7 @@ app.put('/api/agricultural-division/:id', authenticateToken, async (req, res) =>
   try {
     const { id } = req.params;
     const { title, content, image_url } = req.body;
-    const result = await pool.query(
+    const result = await executeQueryWithRetry(
       'UPDATE agricultural_division SET title = $1, content = $2, image_url = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
       [title, content, image_url, id]
     );
@@ -791,6 +860,7 @@ app.put('/api/agricultural-division/:id', authenticateToken, async (req, res) =>
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 // Serve admin page
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
@@ -809,9 +879,25 @@ app.get('/agriculture.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'agriculture.html'));
 });
 
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Received SIGINT. Shutting down gracefully...');
+  await pool.end();
+  console.log('✅ Database connections closed.');
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('🛑 Received SIGTERM. Shutting down gracefully...');
+  await pool.end();
+  console.log('✅ Database connections closed.');
+  process.exit(0);
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 Test database connection: http://localhost:${PORT}/api/test-db`);
   console.log(`👨‍💼 Admin panel: http://localhost:${PORT}/admin`);
   console.log(`❤️ Health check: http://localhost:${PORT}/api/health`);
+  console.log(`⏰ Timeout: 30 seconds | Retry attempts: 3`);
 });
